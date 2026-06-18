@@ -27,21 +27,24 @@
 | 19 | Badges de estado con colores suaves | ✅ Cumple | `RequestsScreen` + `RequestDetailScreen` | 8 estados: enviada, pendiente, evaluación, observada, aprobada, rechazada, desembolsada, desconocido |
 | 20 | Estado vacío mejorado | ✅ Cumple | `RequestsScreen` | Ícono, título, subtítulo informativo, soporta pull-to-refresh |
 | 21 | Transferencias y pagos | ✅ Cumple | `TransfersScreen` (`/transfers`) | Tipos: transferencia, pago crédito, pago servicio |
-| 22 | Resumen y confirmación de operación | ✅ Cumple | Transferencias — pasos resumen + confirmar | Validación monto y destino |
-| 23 | Perfil de usuario | ✅ Cumple | `ProfileScreen` (`/profile`) | Datos, DNI censurado, tipo cliente |
+| 22 | Resumen y confirmación de operación | ✅ Cumple | Transferencias — pasos resumen + confirmar | Validación monto, destino y saldo suficiente |
+| 23 | Operaciones persistentes en Supabase | ✅ Cumple | Transferencias + Dashboard + Cuentas | Inserta en `clientes_operaciones`, `clientes_movimientos` y actualiza `clientes_cuentas` |
+| 24 | Validación de saldo insuficiente | ✅ Cumple | Transferencias — formulario | Error "Saldo insuficiente para realizar la operación." |
+| 25 | Refresco de saldo post-operación | ✅ Cumple | Dashboard + Cuentas | Nuevo saldo y movimiento visibles al regresar |
+| 26 | Perfil de usuario | ✅ Cumple | `ProfileScreen` (`/profile`) | Datos, DNI censurado, tipo cliente |
 | 24 | Cierre de sesión | ✅ Cumple | Dashboard (AppBar) y Perfil | signOut Supabase + clearActivity + pushReplacementNamed |
 | 25 | Navegación funcional | ✅ Cumple | Bottom nav + rutas nombradas | Inicio, Cuentas, Créditos, Perfil; links entre módulos; ahora con splash inicial |
 | 26 | Arquitectura MVVM | ✅ Cumple | `lib/app/model`, `viewmodel`, `view` | `ChangeNotifier` + `ListenableBuilder` |
 | 27 | Datos hardcodeados/mock | ✅ Cumple | ViewModels | Sin API ni persistencia (excepto shared_preferences para sesión) |
-| 28 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
-| 29 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
+| 30 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
+| 31 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
 
 ## Resumen de cumplimiento
 
 | Métrica | Valor |
 |---------|-------|
-| Requisitos evaluados | 29 |
-| Cumplidos | 29 |
+| Requisitos evaluados | 31 |
+| Cumplidos | 31 |
 | Pendientes (esta entrega) | 0 |
 
 ## Fuera de alcance (fase backend)
@@ -49,4 +52,5 @@
 - Autenticación y registro en servidor
 - Sincronización de saldos y movimientos reales
 - Transferencias con autorización bancaria
-- Persistencia y notificaciones
+- Notificaciones push
+- RPC transaccional en backend (operación + movimiento + saldo atómico)

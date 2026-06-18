@@ -30,11 +30,24 @@
 - [x] Estado vacío mejorado
 - [x] Documentación FASE_C3_MEJORAS_SOLICITUDES.md
 
-## Fase C4 — Core funcional (pendiente)
-- [ ] Conectar `clientes_cuentas` con datos reales
-- [ ] Conectar `clientes_movimientos` con movimientos reales
-- [ ] Conectar `clientes_creditos` con créditos desembolsados
-- [ ] Reflejar saldo post-operación en UI
+## Fase C4.1 — Core funcional — Carga real sin mock ✅ (COMPLETADA)
+- [x] Conectar `clientes_cuentas` con datos reales
+- [x] Conectar `clientes_movimientos` con movimientos reales
+- [x] Conectar `clientes_creditos` con créditos desembolsados
+- [x] Dashboard, Cuentas, Créditos y Perfil cargan datos reales sin mostrar demo al inicio
+
+## Fase C4.2 — Operaciones persistentes ✅ (COMPLETADA)
+- [x] Insertar operación en `clientes_operaciones` al confirmar transferencia
+- [x] Insertar movimiento en `clientes_movimientos` como débito
+- [x] Actualizar saldo en `clientes_cuentas` post-operación
+- [x] Validación de saldo suficiente antes de operar
+- [x] Refresco de Dashboard/Cuentas al regresar post-operación
+- [x] Documentación FASE_C4_2_OPERACIONES_PERSISTENTES.md
+
+## Fase C4.3 — Mejoras transaccionales (pendiente)
+- [ ] RPC transaccional en backend
+- [ ] Manejo de límite diario de operaciones
+- [ ] Historial completo de operaciones con paginación
 - [ ] SQLite para caché offline
 
 ## Fase C5 — Experiencia completa (pendiente)

@@ -98,8 +98,22 @@ Guía para capturas de pantalla y exposición oral. Orden recomendado para una p
 
 | Aspecto | Detalle |
 |---------|---------|
-| **Qué mostrar** | Ícono de éxito, número `ALF-OP-XXXX`, fecha, monto, botones “Nueva operación” y “Volver al inicio” |
-| **Qué explicar** | Comprobante simulado; en producción se registraría en el ledger |
+| **Qué mostrar** | Ícono de éxito, número `ALF-OP-XXXX`, fecha, monto, tipo, estado, destino, "Operación registrada correctamente.", botones "Nueva operación" y "Volver al inicio" |
+| **Qué explicar** | Comprobante simulado con persistencia en Supabase; se insertó en `clientes_operaciones`, `clientes_movimientos` y se actualizó `clientes_cuentas` |
+
+## 10b. Validación de saldo insuficiente
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Ingresar un monto mayor al saldo disponible → error "Saldo insuficiente para realizar la operación." en el campo monto |
+| **Qué explicar** | Validación desde el saldo real cargado de Supabase; en producción se consultaría el core bancario |
+
+## 10c. Saldo actualizado post-operación
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Volver al Dashboard después de una operación exitosa → saldo actualizado; ir a Cuentas → nuevo movimiento arriba |
+| **Qué explicar** | Al navegar, los ViewModels se crean frescos y cargan desde Supabase; el nuevo saldo y movimiento se reflejan automáticamente |
 
 ---
 

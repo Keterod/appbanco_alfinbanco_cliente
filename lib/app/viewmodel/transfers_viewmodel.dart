@@ -32,8 +32,6 @@ class TransfersViewModel extends ChangeNotifier {
   final AccountsRepository _accountsRepository;
   final OperationsRepository _operationsRepository;
 
-  static int _operationCounter = 1;
-
   TransferFlowStep step = TransferFlowStep.form;
   TransferOperationType operationType = TransferOperationType.transferencia;
 
@@ -49,6 +47,9 @@ class TransfersViewModel extends ChangeNotifier {
   bool isLoading = false;
   TransferModel? completedTransfer;
 
+  double _availableBalance = 0;
+  bool _balanceLoaded = false;
+
   void init() {
     if (initialOperationType != null) {
       operationType = initialOperationType!;
@@ -62,12 +63,24 @@ class TransfersViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  String get _operationCategory {
+    return switch (operationType) {
+      TransferOperationType.transferencia => 'Transferencia',
+      TransferOperationType.pagoCredito => 'Pago de crédito',
+      TransferOperationType.pagoServicio => 'Servicios',
+    };
+  }
+
   Future<void> _loadOriginAccount() async {
     if (!_auth.isConfigured || _auth.currentUser == null) return;
     try {
       final account = await _accountsRepository.getMainAccount();
       if (account != null) {
         originAccount = account.accountNumber;
+        _availableBalance = account.balance;
+        _balanceLoaded = true;
+        debugPrint('[TRANSFERS] loading real account');
+        debugPrint('[TRANSFERS] balance=$_availableBalance');
         notifyListeners();
       }
     } catch (e) {
@@ -120,6 +133,8 @@ class TransfersViewModel extends ChangeNotifier {
     final amount = double.tryParse(amountText.replaceAll(',', '.'));
     if (amount == null || amount <= 0) {
       amountError = 'Ingrese un monto mayor a 0';
+    } else if (_balanceLoaded && amount > _availableBalance) {
+      amountError = 'Saldo insuficiente para realizar la operación.';
     }
 
     final valid = destinationError == null && amountError == null;
@@ -152,6 +167,15 @@ class TransfersViewModel extends ChangeNotifier {
 
     if (_auth.isConfigured && _auth.currentUser != null) {
       try {
+        debugPrint('[TRANSFERS] validating funds');
+        if (_balanceLoaded && amount > _availableBalance) {
+          generalError = 'Saldo insuficiente para realizar la operación.';
+          isLoading = false;
+          notifyListeners();
+          return;
+        }
+
+        debugPrint('[TRANSFERS] inserting operation');
         completedTransfer = await _operationsRepository.createOperation(
           originAccount: originAccount,
           destinationAccount: destination,
@@ -159,29 +183,42 @@ class TransfersViewModel extends ChangeNotifier {
           description: desc,
           tipoOperacion: operationTypeLabel,
         );
+
+        debugPrint('[TRANSFERS] inserting movement');
+        await _accountsRepository.insertMovement(
+          amount: amount,
+          description: desc,
+          category: _operationCategory,
+          reference: completedTransfer!.operationNumber,
+          isDebit: true,
+        );
+
+        debugPrint('[TRANSFERS] updating balance');
+        final newBalance = _availableBalance - amount;
+        await _accountsRepository.updateBalance(newBalance);
+        _availableBalance = newBalance;
+
+        debugPrint(
+            '[TRANSFERS] operation completed numero=${completedTransfer!.operationNumber}');
         isLoading = false;
         step = TransferFlowStep.success;
         notifyListeners();
         return;
       } catch (e) {
-        debugPrint('[TransfersViewModel] createOperation: $e');
-        generalError =
-            'No se pudo registrar la operación. Se usará modo demostración.';
+        debugPrint('[TRANSFERS] error=$e');
+        generalError = 'No se pudo completar la operación. Intente nuevamente.';
+        isLoading = false;
+        notifyListeners();
+        return;
       }
     }
-
-    await Future<void>.delayed(const Duration(milliseconds: 1200));
-
-    final opNumber =
-        'ALF-OP-${_operationCounter.toString().padLeft(4, '0')}';
-    _operationCounter++;
 
     completedTransfer = TransferModel(
       originAccount: originAccount,
       destinationAccount: destination,
       amount: amount,
       description: desc,
-      operationNumber: opNumber,
+      operationNumber: 'ALF-OP-${DateTime.now().millisecondsSinceEpoch}',
       date: DateTime.now(),
       status: 'Completada',
     );

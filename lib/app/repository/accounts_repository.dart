@@ -52,4 +52,60 @@ class AccountsRepository {
         .map((r) => MovementModel.fromSupabase(r))
         .toList();
   }
+
+  Future<double?> getCurrentBalance() async {
+    if (!_auth.isConfigured || _userId == null) return null;
+
+    final client = _client ?? supabase;
+    final rows = await client
+        .from('clientes_cuentas')
+        .select('saldo')
+        .eq('cliente_id', _userId!)
+        .eq('es_principal', true)
+        .limit(1);
+
+    final list = List<Map<String, dynamic>>.from(rows as List);
+    if (list.isEmpty) return null;
+    return (list.first['saldo'] as num?)?.toDouble();
+  }
+
+  Future<void> insertMovement({
+    required double amount,
+    required String description,
+    required String category,
+    required String reference,
+    required bool isDebit,
+  }) async {
+    if (!_auth.isConfigured || _userId == null) {
+      throw StateError('Supabase no está disponible.');
+    }
+
+    final client = _client ?? supabase;
+    await client.from('clientes_movimientos').insert({
+      'cliente_id': _userId!,
+      'fecha': DateTime.now().toIso8601String(),
+      'monto': amount,
+      'es_abono': !isDebit,
+      'descripcion': description,
+      'categoria': category,
+      'referencia': reference,
+    });
+  }
+
+  Future<void> updateBalance(double newBalance) async {
+    if (!_auth.isConfigured || _userId == null) {
+      throw StateError('Supabase no está disponible.');
+    }
+
+    final client = _client ?? supabase;
+    await client
+        .from('clientes_cuentas')
+        .update({
+          'saldo': newBalance,
+          'saldo_disponible': newBalance,
+          'saldo_contable': newBalance,
+        })
+        .eq('cliente_id', _userId!)
+        .eq('es_principal', true);
+  }
 }

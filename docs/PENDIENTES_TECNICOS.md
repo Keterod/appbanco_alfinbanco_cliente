@@ -20,7 +20,19 @@
 - [x] Badges de estado con colores suaves
 - [x] Estado vacío mejorado
 
-## Pendientes para fase siguiente
+## Implementados en Fase C4.1
+- [x] Dashboard, Cuentas, Créditos y Perfil cargan datos reales desde Supabase
+- [x] Eliminado parpadeo de datos demo al inicio
+- [x] Manejo de loading, vacío y error en cada pantalla
+
+## Implementados en Fase C4.2
+- [x] Persistencia de operaciones en `clientes_operaciones`
+- [x] Persistencia de movimientos en `clientes_movimientos`
+- [x] Actualización de saldo en `clientes_cuentas`
+- [x] Validación de saldo suficiente antes de operar
+
+## Pendientes para fase siguiente (C4.3)
+- [ ] RPC transaccional en backend (reemplazar 3 pasos del cliente)
 - [ ] Reflejar solicitudes aprobadas → créditos activos
 - [ ] Pago de cuota real desde créditos desembolsados
 - [ ] SQLite / modo offline

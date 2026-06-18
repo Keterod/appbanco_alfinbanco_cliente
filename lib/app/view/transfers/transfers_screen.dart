@@ -274,6 +274,13 @@ class _TransfersScreenState extends State<TransfersScreen> {
                         color: AppColors.purpleSupport,
                       ),
                 ),
+                const SizedBox(height: 12),
+                Text(
+                  'Operación registrada correctamente.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textDark.withValues(alpha: 0.5),
+                      ),
+                ),
                 const SizedBox(height: 20),
                 _SummaryRow(
                   label: 'N° operación',
@@ -289,6 +296,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
                   value: 'S/ ${FormatUtils.formatSoles(transfer.amount)}',
                   highlight: true,
                 ),
+                _SummaryRow(label: 'Tipo', value: _viewModel.operationTypeLabel),
                 _SummaryRow(label: 'Estado', value: transfer.status),
                 _SummaryRow(label: 'Destino', value: transfer.destinationAccount),
               ],

@@ -123,7 +123,7 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 - Sin modo offline real: sin internet no se puede iniciar sesión.
 - La sesión temporal solo usa shared_preferences, no secure storage.
 - "Contactar asesor" es simulado (AlertDialog), no hay envío real de notificación.
-- Solo `solicitudes_credito` está conectada a Supabase real; cuentas, créditos y movimientos siguen siendo mock.
+- Operación → movimiento → saldo se ejecuta desde el cliente sin transacción atómica; en producción debe ser RPC.
 
 ## Próximos pasos recomendados
 
