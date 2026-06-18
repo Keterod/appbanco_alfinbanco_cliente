@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/session/session_timeout_manager.dart';
 import '../data/demo_client_data.dart';
 import '../model/user_profile_model.dart';
 import '../repository/auth_repository.dart';
@@ -47,6 +48,8 @@ class ProfileViewModel extends ChangeNotifier {
   Future<void> logout() async {
     try {
       await _auth.signOut();
+      await SessionTimeoutManager.clearActivity();
+      debugPrint('[AUTH] logout completed');
     } catch (e) {
       debugPrint('[ProfileViewModel] signOut: $e');
     }

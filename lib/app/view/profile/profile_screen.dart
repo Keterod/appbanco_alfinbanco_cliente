@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../core/session/session_timeout_manager.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
 import '../../util/format_utils.dart';
@@ -21,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _viewModel = ProfileViewModel();
+    unawaited(SessionTimeoutManager.saveActivity());
   }
 
   @override

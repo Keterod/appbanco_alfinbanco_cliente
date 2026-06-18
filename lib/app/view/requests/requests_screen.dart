@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../core/session/session_timeout_manager.dart';
 import '../../model/request_model.dart';
 import '../../ui/theme/app_colors.dart';
 import '../../util/format_utils.dart';
@@ -22,6 +25,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
     super.initState();
     _viewModel = RequestsViewModel();
     _viewModel.loadRequests();
+    unawaited(SessionTimeoutManager.saveActivity());
   }
 
   @override

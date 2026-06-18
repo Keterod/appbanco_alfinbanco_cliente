@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../core/session/session_timeout_manager.dart';
 import '../../model/payment_schedule_model.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
@@ -22,6 +25,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
   void initState() {
     super.initState();
     _viewModel = CreditsViewModel();
+    unawaited(SessionTimeoutManager.saveActivity());
   }
 
   @override

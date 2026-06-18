@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../core/session/session_timeout_manager.dart';
 import '../../model/movement_model.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
@@ -22,6 +25,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
   void initState() {
     super.initState();
     _viewModel = AccountsViewModel();
+    unawaited(SessionTimeoutManager.saveActivity());
   }
 
   @override

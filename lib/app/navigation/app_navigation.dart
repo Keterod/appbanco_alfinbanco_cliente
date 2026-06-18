@@ -7,6 +7,7 @@ import '../view/credits/credits_screen.dart';
 import '../view/home/dashboard_screen.dart';
 import '../view/profile/profile_screen.dart';
 import '../view/requests/requests_screen.dart';
+import '../view/splash/splash_screen.dart';
 import '../view/transfers/transfers_screen.dart';
 import '../ui/theme/app_theme.dart';
 import '../viewmodel/transfers_viewmodel.dart';
@@ -21,8 +22,9 @@ class AppNavigation extends StatelessWidget {
       title: 'Alfin Banco',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.splash,
       routes: {
+        AppRoutes.splash: (_) => const SplashScreen(),
         AppRoutes.login: (_) => const LoginScreen(),
         AppRoutes.register: (_) => const RegisterScreen(),
         AppRoutes.dashboard: (_) => const DashboardScreen(),

@@ -6,18 +6,24 @@
 lib/
 ├── main.dart                          # runApp(AppNavigation)
 └── app/
+    ├── core/
+    │   ├── session/                   # SessionTimeoutManager (shared_preferences)
+    │   └── supabase/                  # URL, anon key, bootstrap, getter
     ├── model/                         # Entidades de dominio
     ├── viewmodel/                     # Lógica + datos mock (ChangeNotifier)
     ├── view/
+    │   ├── splash/                    # Splash (verificación de sesión)
     │   ├── auth/                      # Login, Registro
     │   ├── home/                      # Dashboard
     │   ├── accounts/                  # Cuentas / Ahorros
     │   ├── credits/                   # Créditos
+    │   ├── requests/                  # Mis Solicitudes (C1)
     │   ├── transfers/                 # Transferencias y pagos
     │   ├── profile/                   # Perfil
     │   └── widgets/                   # Bottom nav, AppBar compartidos
     ├── navigation/                    # Rutas y MaterialApp
     ├── ui/theme/                      # AppColors, AppTheme
+    ├── repository/                    # Acceso a Supabase
     └── util/                          # FormatUtils (soles, fechas)
 
 assets/images/alfin_logo.png
@@ -29,11 +35,13 @@ android/ ios/ web/ ...                 # Plataformas Flutter (template)
 
 | Módulo | Pantalla | ViewModel |
 |--------|----------|-----------|
+| Splash | `splash_screen.dart` | — (lógica inline) |
 | Autenticación — Login | `login_screen.dart` | `auth_viewmodel.dart` |
 | Autenticación — Registro | `register_screen.dart` | `register_viewmodel.dart` |
 | Inicio | `dashboard_screen.dart` | `home_viewmodel.dart` |
 | Cuentas / Ahorros | `accounts_screen.dart` | `accounts_viewmodel.dart` |
 | Créditos | `credits_screen.dart` | `credits_viewmodel.dart` |
+| Mis Solicitudes | `requests_screen.dart` | `requests_viewmodel.dart` |
 | Transferencias y pagos | `transfers_screen.dart` | `transfers_viewmodel.dart` |
 | Perfil | `profile_screen.dart` | `profile_viewmodel.dart` |
 
@@ -79,11 +87,13 @@ Model (clases Dart inmutables o simples)
 
 | Ruta | Constante | Pantalla |
 |------|-----------|----------|
-| `/` | `AppRoutes.login` | Login |
+| `/` | `AppRoutes.splash` | Splash (verificación de sesión) |
+| `/login` | `AppRoutes.login` | Login |
 | `/register` | `AppRoutes.register` | Registro |
 | `/dashboard` | `AppRoutes.dashboard` | Inicio |
 | `/accounts` | `AppRoutes.accounts` | Cuentas |
 | `/credits` | `AppRoutes.credits` | Créditos |
+| `/requests` | `AppRoutes.requests` | Mis Solicitudes |
 | `/transfers` | `AppRoutes.transfers` | Transferencias (`onGenerateRoute`, arg `pagoCredito`) |
 | `/profile` | `AppRoutes.profile` | Perfil |
 
@@ -97,15 +107,18 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 4. **`FormatUtils`** — formateo de soles y fechas reutilizable.
 5. **Widgets compartidos** — `AlfinAppBar`, `AppBottomNav` para consistencia de marca.
 6. **`flutter_launcher_icons`** — icono desde `alfin_logo.png` (solo dev/build).
+7. **Sesión temporal con shared_preferences** — `SessionTimeoutManager` guarda timestamp de última actividad.
+8. **Timeout de 5 minutos** — constante configurable; al expirar se cierra sesión y redirige a Login.
 
 ## Limitaciones actuales
 
-- No hay autenticación ni registro en servidor.
-- No hay persistencia (sesión, formularios, historial).
+- No hay autenticación ni registro en servidor (demo mode como respaldo).
 - ViewModels no se comparten entre pantallas (datos duplicados en mocks).
 - Un solo crédito y una sola cuenta en los datos demo.
 - iOS/Web/desktop no priorizados frente a Android para la demo.
 - Sin tests automatizados en el repositorio.
+- Sin modo offline real: sin internet no se puede iniciar sesión.
+- La sesión temporal solo usa shared_preferences, no secure storage.
 
 ## Próximos pasos recomendados
 

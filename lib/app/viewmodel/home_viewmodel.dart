@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/session/session_timeout_manager.dart';
 import '../data/demo_client_data.dart';
 import '../model/account_model.dart';
 import '../model/credit_model.dart';
@@ -84,5 +85,15 @@ class HomeViewModel extends ChangeNotifier {
 
     isLoadingRemote = false;
     notifyListeners();
+  }
+
+  Future<void> logout() async {
+    try {
+      await _auth.signOut();
+      await SessionTimeoutManager.clearActivity();
+      debugPrint('[AUTH] logout completed');
+    } catch (e) {
+      debugPrint('[HomeViewModel] logout error: $e');
+    }
   }
 }

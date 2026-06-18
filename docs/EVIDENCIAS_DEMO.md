@@ -4,12 +4,21 @@ Guía para capturas de pantalla y exposición oral. Orden recomendado para una p
 
 ---
 
+## 0. Splash — Verificación de sesión
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Logo Alfin, "Alfin Banco", "Verificando sesión..." con spinner |
+| **Qué explicar** | Punto de entrada; verifica sesión Supabase, timeout de 5 min e internet; si todo ok va directo al Dashboard; si expiró o no hay sesión va al Login |
+
+---
+
 ## 1. Login
 
 | Aspecto | Detalle |
 |---------|---------|
-| **Qué mostrar** | Logo Alfin, título “Alfin Banco”, campos DNI y contraseña, botón “Ingresar”, enlace “¿No tienes cuenta? Regístrate”, texto modo demostración |
-| **Qué explicar** | Punto de entrada; credenciales de ejemplo; en producción validaría contra el core bancario |
+| **Qué mostrar** | Logo Alfin, título "Alfin Banco", campos DNI y contraseña, botón "Ingresar", enlace "¿No tienes cuenta? Regístrate", texto modo demostración, posible banner de conexión requerida |
+| **Qué explicar** | Punto de entrada tras splash; credenciales de ejemplo; muestra banner si no hay internet; en producción validaría contra el core bancario |
 
 ---
 

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../core/session/session_timeout_manager.dart';
 import '../../model/movement_model.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
@@ -22,12 +25,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _viewModel = HomeViewModel();
+    unawaited(SessionTimeoutManager.saveActivity());
   }
 
   @override
   void dispose() {
     _viewModel.dispose();
     super.dispose();
+  }
+
+  Future<void> _logout() async {
+    await _viewModel.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
   @override
@@ -42,8 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           IconButton(
             tooltip: 'Cerrar sesión',
-            onPressed: () =>
-                Navigator.of(context).pushReplacementNamed(AppRoutes.login),
+            onPressed: _logout,
             icon: const Icon(Icons.logout_rounded),
           ),
         ],

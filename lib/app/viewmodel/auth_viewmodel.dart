@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/session/session_timeout_manager.dart';
 import '../repository/auth_repository.dart';
 
 /// ViewModel de autenticación con Supabase y respaldo en modo demostración.
@@ -32,6 +33,7 @@ class AuthViewModel extends ChangeNotifier {
           password,
         );
         if (response.session != null) {
+          await SessionTimeoutManager.saveActivity();
           isLoading = false;
           isSuccess = true;
           notifyListeners();

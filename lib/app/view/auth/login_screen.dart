@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/session/session_timeout_manager.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
 import '../../viewmodel/auth_viewmodel.dart';
@@ -15,11 +16,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   late final AuthViewModel _viewModel;
+  bool _internetRequired = false;
 
   @override
   void initState() {
     super.initState();
     _viewModel = AuthViewModel();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map && args['internetRequired'] == true) {
+        setState(() => _internetRequired = true);
+      }
+    });
   }
 
   @override
@@ -37,6 +45,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     if (!mounted) return;
     if (_viewModel.isSuccess) {
+      await SessionTimeoutManager.saveActivity();
+      if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
     }
   }
@@ -110,6 +120,34 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: AppColors.secondary,
                                     fontWeight: FontWeight.w600,
                                   ),
+                            ),
+                          ],
+                          if (_internetRequired) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.primary.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.wifi_off_rounded,
+                                      size: 18, color: AppColors.primary),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'Necesitas conexión a internet para iniciar sesión.',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            color: AppColors.primary,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                           if (_viewModel.errorMessage != null) ...[

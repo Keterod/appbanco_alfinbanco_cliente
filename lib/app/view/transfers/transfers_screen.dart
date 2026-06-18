@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/session/session_timeout_manager.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
 import '../../util/format_utils.dart';
@@ -33,6 +36,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
     _viewModel.init();
     _originController.text = _viewModel.originAccount;
     _syncControllersFromViewModel();
+    unawaited(SessionTimeoutManager.saveActivity());
   }
 
   void _syncControllersFromViewModel() {
