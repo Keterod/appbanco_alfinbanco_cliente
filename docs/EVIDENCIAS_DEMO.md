@@ -220,12 +220,33 @@ Guía para capturas de pantalla y exposición oral. Orden recomendado para una p
 
 ---
 
-## 10m. Validación de solicitud de crédito
+## 10m. Timeline del expediente en detalle
 
 | Aspecto | Detalle |
 |---------|---------|
-| **Qué mostrar** | Intentar transferir sin seleccionar origen → "Selecciona una cuenta origen."; sin destino → "Selecciona una cuenta destino."; mismo origen y destino → "La cuenta destino debe ser diferente."; monto mayor al saldo → "Saldo insuficiente para realizar la transferencia." |
-| **Qué explicar** | Validaciones en `validateForContinue()`; cada mensaje específico según el error |
+| **Qué mostrar** | Detalle de solicitud → sección "Seguimiento del expediente" con 5 pasos verticales: Solicitud enviada (check ✅), Recibido por comité (check ✅), En evaluación (círculo relleno = actual), Decisión (círculo vacío = pendiente), Desembolso (círculo vacío = pendiente) |
+| **Qué explicar** | Mapeo estado→paso: enviado→paso1, recibido_comite→paso2, en_evaluacion→paso3, decisión→paso4, desembolso→paso5; cada paso tiene icono distinto según completado/actual/pendiente |
+
+## 10n. Card de resultado de evaluación
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Para solicitud aprobada: "Resultado de evaluación" → badge verde "Aprobado" + monto aprobado + "Tu crédito fue aprobado y se encuentra pendiente de desembolso."; para rechazado: badge rojo "Rechazado" + motivo + mensaje |
+| **Qué explicar** | La card solo aparece si el estado tiene decisión (aprobado/condicionado/rechazado/desembolsado). Si no, muestra "Aún no hay decisión final." + "Te avisaremos cuando tu expediente cambie de estado." |
+
+## 10o. Lista de solicitudes mejorada
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Cada tarjeta en Mis Solicitudes muestra: expediente, monto · plazo, badge de estado, descripción corta "Tu solicitud fue registrada correctamente...", "Paso 1 de 5", fecha de última actualización |
+| **Qué explicar** | Subtítulo usa `statusDescription` del modelo; paso se calcula con `statusStepIndex`; `updatedAt` muestra última modificación si existe |
+
+## 10p. Dashboard — Estado de tus expedientes
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Sección en Dashboard debajo de Mis Operaciones: título "Estado de tus expedientes", último expediente con badge y paso, 3 chips: En evaluación (0), Aprobados (0), Rechazados (0). Al tocar va a Mis Solicitudes |
+| **Qué explicar** | Datos cargados desde `RequestsRepository.getRequests()` en el HomeViewModel; conteos con filtros por estado (evaluationCount, approvedCount, rejectedCount) |
 
 ## 15. Cierre de sesión
 

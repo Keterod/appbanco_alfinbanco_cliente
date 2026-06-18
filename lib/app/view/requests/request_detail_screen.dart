@@ -25,39 +25,27 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
 
   Color _badgeColor(String estado) {
     return switch (estado.toLowerCase()) {
-      'enviada' || 'pendiente' => Colors.blue.shade700,
-      'en evaluación' || 'evaluacion' || 'en_evaluacion' =>
+      'enviada' || 'pendiente' || 'enviado' => Colors.blue.shade700,
+      'en evaluación' || 'evaluacion' || 'en_evaluacion' || 'recibido_comite' =>
         Colors.amber.shade800,
-      'observada' => Colors.orange.shade800,
-      'aprobada' || 'desembolsada' => Colors.green.shade700,
-      'rechazada' => Colors.red.shade700,
+      'observada' || 'condicionado' => Colors.orange.shade800,
+      'aprobada' || 'aprobado' || 'desembolsada' || 'desembolsado' =>
+        Colors.green.shade700,
+      'rechazada' || 'rechazado' => Colors.red.shade700,
       _ => Colors.grey.shade700,
     };
   }
 
   Color _bgColor(String estado) {
     return switch (estado.toLowerCase()) {
-      'enviada' || 'pendiente' => Colors.blue.shade50,
-      'en evaluación' || 'evaluacion' || 'en_evaluacion' =>
+      'enviada' || 'pendiente' || 'enviado' => Colors.blue.shade50,
+      'en evaluación' || 'evaluacion' || 'en_evaluacion' || 'recibido_comite' =>
         Colors.amber.shade50,
-      'observada' => Colors.orange.shade50,
-      'aprobada' || 'desembolsada' => Colors.green.shade50,
-      'rechazada' => Colors.red.shade50,
+      'observada' || 'condicionado' => Colors.orange.shade50,
+      'aprobada' || 'aprobado' || 'desembolsada' || 'desembolsado' =>
+        Colors.green.shade50,
+      'rechazada' || 'rechazado' => Colors.red.shade50,
       _ => Colors.grey.shade50,
-    };
-  }
-
-  String _estadoLabel(String estado) {
-    return switch (estado.toLowerCase()) {
-      'enviada' => 'Enviada',
-      'pendiente' => 'Pendiente',
-      'evaluacion' || 'en_evaluacion' => 'En evaluación',
-      'en evaluación' => 'En evaluación',
-      'observada' => 'Observada',
-      'aprobada' => 'Aprobada',
-      'rechazada' => 'Rechazada',
-      'desembolsada' => 'Desembolsada',
-      _ => estado,
     };
   }
 
@@ -98,7 +86,6 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     final req = widget.request;
     final badgeColor = _badgeColor(req.estado);
     final bgBadge = _bgColor(req.estado);
-    final estadoLabel = _estadoLabel(req.estado);
 
     return Scaffold(
       appBar: AppBar(
@@ -119,12 +106,60 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          req.numeroExpediente,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              req.numeroExpediente,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            if (req.updatedAt != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                'Actualizado: ${FormatUtils.formatDate(req.updatedAt!)}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                        color: AppColors.textDark
+                                            .withValues(alpha: 0.55)),
+                              ),
+                            ] else if (req.createdAt != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                'Creada: ${FormatUtils.formatDate(req.createdAt!)}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                        color: AppColors.textDark
+                                            .withValues(alpha: 0.55)),
+                              ),
+                            ],
+                            if (req.hasUpdate) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(Icons.circle,
+                                      size: 8, color: Colors.amber.shade700),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Tu expediente tiene una actualización.',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: Colors.amber.shade800,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                       Container(
@@ -135,7 +170,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          estadoLabel,
+                          req.statusLabel,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -145,19 +180,21 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       ),
                     ],
                   ),
-                  if (req.createdAt != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Creada: ${FormatUtils.formatDate(req.createdAt!)}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                AppColors.textDark.withValues(alpha: 0.55),
-                          ),
-                    ),
-                  ],
                 ],
               ),
             ),
+            if (req.normalizedStatus != 'borrador' &&
+                req.statusStepIndex >= 0) ...[
+              const SizedBox(height: 16),
+              _buildTimeline(context, req),
+            ],
+            if (req.hasDecision) ...[
+              const SizedBox(height: 16),
+              _buildDecisionCard(context, req),
+            ] else ...[
+              const SizedBox(height: 16),
+              _buildNoDecisionCard(context, req),
+            ],
             const SizedBox(height: 16),
             _SectionCard(
               child: Column(
@@ -274,8 +311,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                     Text(
                       '${req.cronograma.length} cuota${req.cronograma.length == 1 ? '' : 's'}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textDark
-                                .withValues(alpha: 0.55),
+                            color: AppColors.textDark.withValues(alpha: 0.55),
                           ),
                     ),
                     const SizedBox(height: 16),
@@ -304,6 +340,291 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTimeline(BuildContext context, RequestModel req) {
+    final currentStep = req.statusStepIndex;
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Seguimiento del expediente',
+            style: Theme.of(context)
+                .textTheme
+                .titleSmall
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 16),
+          for (var i = 0; i < RequestModel.totalSteps; i++) ...[
+            _buildTimelineRow(i, currentStep, req),
+            if (i < RequestModel.totalSteps - 1)
+              Container(
+                width: 2,
+                height: 28,
+                margin: const EdgeInsets.only(left: 15),
+                color: i < currentStep
+                    ? AppColors.primary
+                    : Colors.grey.shade300,
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimelineRow(int index, int currentStep, RequestModel req) {
+    final isCompleted = index < currentStep;
+    final isCurrent = index == currentStep;
+    final isNA = index == 4 && req.isRejected;
+
+    IconData icon;
+    Color iconColor;
+    Color bgColor;
+
+    if (isNA) {
+      icon = Icons.not_interested;
+      iconColor = Colors.grey;
+      bgColor = Colors.grey.shade100;
+    } else if (isCompleted) {
+      icon = Icons.check_circle;
+      iconColor = AppColors.primary;
+      bgColor = AppColors.primary.withValues(alpha: 0.1);
+    } else if (isCurrent) {
+      icon = Icons.radio_button_checked;
+      iconColor = AppColors.secondary;
+      bgColor = AppColors.secondary.withValues(alpha: 0.12);
+    } else {
+      icon = Icons.radio_button_unchecked;
+      iconColor = Colors.grey.shade400;
+      bgColor = Colors.transparent;
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: bgColor,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 20, color: iconColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  RequestModel.timelineSteps[index],
+                  style: TextStyle(
+                    fontWeight: isCurrent || isCompleted
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                    color: isNA
+                        ? Colors.grey
+                        : isCurrent
+                            ? AppColors.secondary
+                            : AppColors.textDark,
+                    fontSize: 13,
+                  ),
+                ),
+                if (isCurrent || isNA) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    isNA
+                        ? 'No aplica'
+                        : req.statusDescription,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isNA
+                          ? Colors.grey
+                          : AppColors.textDark.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ],
+                if (index == 3 && isCurrent && req.isRejected && req.motivoRechazo != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Motivo: ${req.motivoRechazo}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDecisionCard(BuildContext context, RequestModel req) {
+    final isRej = req.isRejected;
+    final isCond = req.isConditioned;
+    final isApproved = req.isApproved;
+    final isDes = req.isDisbursed;
+
+    String title;
+    String message;
+    Color color;
+
+    if (isDes) {
+      title = 'Desembolsado';
+      message = 'Tu crédito ya fue desembolsado.';
+      color = Colors.green;
+    } else if (isRej) {
+      title = 'Rechazado';
+      message = req.motivoRechazo ?? 'Tu solicitud no fue aprobada.';
+      color = Colors.red;
+    } else if (isCond) {
+      title = 'Aprobado con condiciones';
+      message = 'El comité aprobó un monto o condición diferente al solicitado.';
+      color = Colors.orange;
+    } else {
+      title = 'Aprobado';
+      message = 'Tu crédito fue aprobado y se encuentra pendiente de desembolso.';
+      color = Colors.green;
+    }
+
+    final monto = req.montoAprobado ?? req.montoSolicitado;
+
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(isRej ? Icons.cancel_rounded : Icons.check_circle_rounded,
+                  color: color),
+              const SizedBox(width: 8),
+              Text(
+                'Resultado de evaluación',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: color.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                    fontSize: 15,
+                  ),
+                ),
+                if (!isRej && (req.montoAprobado != null || isApproved)) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Monto: S/ ${FormatUtils.formatSoles(monto)}',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ],
+                if (req.fechaDecision != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Decisión: ${FormatUtils.formatDate(req.fechaDecision!)}',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textDark.withValues(alpha: 0.6)),
+                  ),
+                ],
+                if (isDes && req.fechaDesembolso != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Desembolso: ${FormatUtils.formatDate(req.fechaDesembolso!)}',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textDark.withValues(alpha: 0.6)),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textDark.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoDecisionCard(BuildContext context, RequestModel req) {
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.blue.shade600),
+              const SizedBox(width: 8),
+              Text(
+                'Resultado de evaluación',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Aún no hay decisión final.',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Te avisaremos cuando tu expediente cambie de estado.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textDark.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

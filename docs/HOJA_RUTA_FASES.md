@@ -76,10 +76,14 @@
 - [x] Pantalla de éxito con enlace a Mis Solicitudes
 - [x] Documentación FASE_C4_5_SOLICITUD_CREDITO_CLIENTE.md
 
-## Fase C4.6 — Seguimiento de expediente / estados (pendiente)
-- [ ] Dashboard con resumen de estado actual de expedientes
-- [ ] Notificaciones de cambio de estado (simulado)
-- [ ] Detalle de respuesta del evaluador
+## Fase C4.6 — Seguimiento visual del expediente ✅ (COMPLETADA)
+- [x] Timeline vertical con 5 pasos en detalle de solicitud
+- [x] Card "Resultado de evaluación" según estado (aprobado/condicionado/rechazado/desembolsado)
+- [x] Indicador "Paso X de 5" y descripción en lista de solicitudes
+- [x] Sección "Estado de tus expedientes" en Dashboard con conteos
+- [x] Badge de actualización cuando updated_at > created_at
+- [x] Soporte para nuevos campos (monto_aprobado, motivo_rechazo, fecha_decision, etc.)
+- [x] Documentación FASE_C4_6_SEGUIMIENTO_EXPEDIENTE.md
 
 ## Fase C4.7 — Crédito desembolsado / crédito activo (pendiente)
 - [ ] Solicitud aprobada → reflejar como crédito activo en clientes_creditos

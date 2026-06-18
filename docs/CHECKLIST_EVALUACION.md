@@ -52,15 +52,21 @@
 | 44 | Inserción en solicitudes_credito con estado enviado | ✅ Cumple | `ClientLoanRequestRepository` | Puente DNI, expediente EXP-ALF-2026-... |
 | 45 | Solicitud visible en Mis Solicitudes | ✅ Cumple | `RequestsScreen` | Misma tabla `solicitudes_credito`, mismo `cliente_id` |
 | 46 | Acceso desde Dashboard | ✅ Cumple | Dashboard | Tarjeta "Solicitar crédito empresarial" |
-| 47 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
-| 48 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
+| 47 | Timeline visual del expediente (5 pasos) | ✅ Cumple | `RequestDetailScreen` | Iconos completado/actual/pendiente para cada paso |
+| 48 | Card de decisión (Resultado de evaluación) | ✅ Cumple | `RequestDetailScreen` | Aprobado/condicionado/rechazado/desembolsado con mensaje |
+| 49 | Indicador paso en lista de solicitudes | ✅ Cumple | `RequestsScreen` | "Paso X de 5" en cada tarjeta |
+| 50 | Sección "Estado de tus expedientes" en Dashboard | ✅ Cumple | Dashboard | Último expediente + conteos (evaluación, aprobados, rechazados) |
+| 51 | Badge de actualización | ✅ Cumple | `RequestDetailScreen` | "Tu expediente tiene una actualización" si updated_at > created_at |
+| 52 | Soporte para campos extendidos | ✅ Cumple | `RequestModel` | monto_aprobado, motivo_rechazo, fecha_decision, etc. |
+| 53 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
+| 54 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
 
 ## Resumen de cumplimiento
 
 | Métrica | Valor |
 |---------|-------|
-| Requisitos evaluados | 48 |
-| Cumplidos | 48 |
+| Requisitos evaluados | 54 |
+| Cumplidos | 54 |
 | Pendientes (esta entrega) | 0 |
 
 ## Fuera de alcance (fase backend)

@@ -7,10 +7,12 @@ import '../data/demo_client_data.dart';
 import '../model/account_model.dart';
 import '../model/credit_model.dart';
 import '../model/movement_model.dart';
+import '../model/request_model.dart';
 import '../repository/accounts_repository.dart';
 import '../repository/auth_repository.dart';
 import '../repository/credits_repository.dart';
 import '../repository/profile_repository.dart';
+import '../repository/requests_repository.dart';
 
 class HomeViewModel extends ChangeNotifier {
   HomeViewModel({
@@ -18,10 +20,12 @@ class HomeViewModel extends ChangeNotifier {
     ProfileRepository? profileRepository,
     AccountsRepository? accountsRepository,
     CreditsRepository? creditsRepository,
+    RequestsRepository? requestsRepository,
   })  : _auth = authRepository ?? AuthRepository(),
         _profileRepository = profileRepository ?? ProfileRepository(),
         _accountsRepository = accountsRepository ?? AccountsRepository(),
-        _creditsRepository = creditsRepository ?? CreditsRepository() {
+        _creditsRepository = creditsRepository ?? CreditsRepository(),
+        _requestsRepository = requestsRepository ?? RequestsRepository() {
     _startLoading();
   }
 
@@ -29,11 +33,14 @@ class HomeViewModel extends ChangeNotifier {
   final ProfileRepository _profileRepository;
   final AccountsRepository _accountsRepository;
   final CreditsRepository _creditsRepository;
+  final RequestsRepository _requestsRepository;
 
   String clientName = '';
   AccountModel? savingsAccount;
   CreditModel? activeCredit;
   List<MovementModel> recentMovements = [];
+  List<RequestModel> requests = [];
+  bool requestsLoaded = false;
 
   bool isLoading = true;
   bool usingSupabaseData = false;
@@ -62,6 +69,7 @@ class HomeViewModel extends ChangeNotifier {
       final account = await _accountsRepository.getMainAccount();
       final credit = await _creditsRepository.getActiveCredit();
       final movements = await _accountsRepository.getMovements();
+      final reqs = await _requestsRepository.getRequests();
 
       if (profile != null) {
         final parts = profile.fullName.split(' ');
@@ -78,6 +86,11 @@ class HomeViewModel extends ChangeNotifier {
 
       if (movements.isNotEmpty) {
         recentMovements = movements.take(5).toList();
+      }
+
+      if (reqs.isNotEmpty) {
+        requests = reqs;
+        requestsLoaded = true;
       }
 
       usingSupabaseData = true;
@@ -100,6 +113,20 @@ class HomeViewModel extends ChangeNotifier {
     activeCredit = DemoClientData.activeCredit;
     recentMovements = DemoClientData.homeMovements;
   }
+
+  int get evaluationCount =>
+      requests.where((r) => r.normalizedStatus == 'recibido_comite' || r.normalizedStatus == 'en_evaluacion').length;
+
+  int get approvedCount =>
+      requests.where((r) => r.isApproved || r.isDisbursed).length;
+
+  int get rejectedCount =>
+      requests.where((r) => r.isRejected).length;
+
+  int get pendingCount =>
+      requests.where((r) => r.normalizedStatus == 'enviado').length;
+
+  RequestModel? get latestRequest => requests.isNotEmpty ? requests.first : null;
 
   Future<void> reload() async {
     clientName = '';

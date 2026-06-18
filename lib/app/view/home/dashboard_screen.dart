@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/session/session_timeout_manager.dart';
 import '../../model/movement_model.dart';
+import '../../model/request_model.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
 import '../../util/format_utils.dart';
@@ -156,7 +157,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           accent: AppColors.purpleSupport,
           onTap: () => Navigator.of(context).pushNamed(AppRoutes.operations),
         ),
-        const SizedBox(height: 24),
+        if (vm.requestsLoaded) ...[
+          const SizedBox(height: 20),
+          _ExpedientesCard(vm: vm),
+          const SizedBox(height: 24),
+        ],
         if (acc != null)
           _BalanceCard(
             title: acc.accountType,
@@ -383,6 +388,141 @@ class _EmptyCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ExpedientesCard extends StatelessWidget {
+  const _ExpedientesCard({required this.vm});
+
+  final HomeViewModel vm;
+
+  @override
+  Widget build(BuildContext context) {
+    final latest = vm.latestRequest;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => Navigator.of(context).pushNamed(AppRoutes.requests),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.assignment_outlined, size: 20, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Estado de tus expedientes',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const Spacer(),
+                  Icon(Icons.chevron_right_rounded, color: AppColors.primary.withValues(alpha: 0.7)),
+                ],
+              ),
+              const SizedBox(height: 14),
+              if (latest != null) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Último: ${latest.numeroExpediente}',
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${latest.statusLabel} · Paso ${latest.statusStepIndex + 1} de ${RequestModel.totalSteps}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textDark.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: latest.normalizedStatus == 'enviado' ||
+                                latest.normalizedStatus == 'recibido_comite' ||
+                                latest.normalizedStatus == 'en_evaluacion'
+                            ? Colors.amber.shade50
+                            : latest.isRejected
+                                ? Colors.red.shade50
+                                : Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        latest.statusLabel,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: latest.isRejected
+                              ? Colors.red.shade700
+                              : latest.isApproved || latest.isDisbursed
+                                  ? Colors.green.shade700
+                                  : Colors.amber.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+              ],
+              Row(
+                children: [
+                  _ChipNum(label: 'En evaluación', count: vm.evaluationCount, color: Colors.amber),
+                  const SizedBox(width: 8),
+                  _ChipNum(label: 'Aprobados', count: vm.approvedCount, color: Colors.green),
+                  const SizedBox(width: 8),
+                  _ChipNum(label: 'Rechazados', count: vm.rejectedCount, color: Colors.red),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChipNum extends StatelessWidget {
+  const _ChipNum({required this.label, required this.count, required this.color});
+
+  final String label;
+  final int count;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            Text(
+              '$count',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: color),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(fontSize: 10, color: AppColors.textDark.withValues(alpha: 0.6)),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );

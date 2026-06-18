@@ -134,12 +134,12 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 - Historial de operaciones sin paginación (carga completa).
 - Transferencia entre cuentas propias usa 2 lecturas + 2 escrituras separadas para débito/crédito; sin RPC hay riesgo de inconsistencia si falla un paso intermedio.
 - Solicitud de crédito empresarial inserta en `solicitudes_credito` con inserción completa (fallback a campos mínimos si alguna columna no existe).
+- Timeline de expediente usa índice de paso calculado del estado; no requiere cambios de backend.
 
 ## Próximos pasos recomendados
 
-1. **C4.6** — Seguimiento de expediente / estados (dashboard de solicitudes, notificaciones de cambio de estado)
-2. **C4.7** — Crédito desembolsado → reflejar como crédito activo en `clientes_creditos`, pago de cuota
-3. **C5** — Pago de Luz, Metas de ahorro, Depósito, RPC transaccional, paginación, filtros, PDF, SQLite offline
+1. **C4.7** — Crédito desembolsado → reflejar como crédito activo en `clientes_creditos`, pago de cuota
+2. **C5** — Pago de Luz, Metas de ahorro, Depósito, RPC transaccional, paginación, filtros, PDF, SQLite offline
 5. Introducir capa **`repository` + `services`** (HTTP o Supabase).
 6. **Provider** o **Riverpod** para sesión y ViewModels globales.
 7. **Secure storage** para token y preferencias.

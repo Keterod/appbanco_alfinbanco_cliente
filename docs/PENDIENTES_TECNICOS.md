@@ -60,10 +60,17 @@
 - [x] Generación de número de expediente
 - [x] Pantalla de éxito con enlace a Mis Solicitudes
 
-## Pendientes para fase siguiente (C4.6 — Seguimiento de expediente / estados)
-- [ ] Dashboard con resumen de estado actual de expedientes
-- [ ] Notificaciones de cambio de estado (simulado)
-- [ ] Detalle de respuesta del evaluador
+## Implementados en Fase C4.6
+- [x] Timeline vertical con 5 pasos en detalle de solicitud
+- [x] Card "Resultado de evaluación" según estado
+- [x] Indicador "Paso X de 5" y descripción en lista de solicitudes
+- [x] Sección "Estado de tus expedientes" en Dashboard con conteos
+- [x] Badge de actualización cuando updated_at > created_at
+- [x] Soporte para campos extendidos (monto_aprobado, motivo_rechazo, etc.)
+
+## Pendientes para fase siguiente (C4.7 — Crédito desembolsado / activo)
+- [ ] Solicitud aprobada → reflejar como crédito activo en clientes_creditos
+- [ ] Opción de pago de cuota desde transferencias
 
 ## Pendientes para fases posteriores (C4.7, C5)
 - [ ] Crédito desembolsado → reflejar como crédito activo en clientes_creditos

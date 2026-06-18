@@ -175,37 +175,27 @@ class _EmptyState extends StatelessWidget {
 
 Color _estadoBadgeColor(String estado) {
   return switch (estado.toLowerCase()) {
-    'enviada' || 'pendiente' => Colors.blue.shade700,
-    'en evaluación' || 'evaluacion' || 'en_evaluacion' => Colors.amber.shade800,
-    'observada' => Colors.orange.shade800,
-    'aprobada' || 'desembolsada' => Colors.green.shade700,
-    'rechazada' => Colors.red.shade700,
+    'enviada' || 'pendiente' || 'enviado' => Colors.blue.shade700,
+    'en evaluación' || 'evaluacion' || 'en_evaluacion' || 'recibido_comite' =>
+      Colors.amber.shade800,
+    'observada' || 'condicionado' => Colors.orange.shade800,
+    'aprobada' || 'aprobado' || 'desembolsada' || 'desembolsado' =>
+      Colors.green.shade700,
+    'rechazada' || 'rechazado' => Colors.red.shade700,
     _ => Colors.grey.shade700,
   };
 }
 
 Color _estadoBackgroundColor(String estado) {
   return switch (estado.toLowerCase()) {
-    'enviada' || 'pendiente' => Colors.blue.shade50,
-    'en evaluación' || 'evaluacion' || 'en_evaluacion' => Colors.amber.shade50,
-    'observada' => Colors.orange.shade50,
-    'aprobada' || 'desembolsada' => Colors.green.shade50,
-    'rechazada' => Colors.red.shade50,
+    'enviada' || 'pendiente' || 'enviado' => Colors.blue.shade50,
+    'en evaluación' || 'evaluacion' || 'en_evaluacion' || 'recibido_comite' =>
+      Colors.amber.shade50,
+    'observada' || 'condicionado' => Colors.orange.shade50,
+    'aprobada' || 'aprobado' || 'desembolsada' || 'desembolsado' =>
+      Colors.green.shade50,
+    'rechazada' || 'rechazado' => Colors.red.shade50,
     _ => Colors.grey.shade50,
-  };
-}
-
-String _estadoLabel(String estado) {
-  return switch (estado.toLowerCase()) {
-    'enviada' => 'Enviada',
-    'pendiente' => 'Pendiente',
-    'evaluacion' || 'en_evaluacion' => 'En evaluación',
-    'en evaluación' => 'En evaluación',
-    'observada' => 'Observada',
-    'aprobada' => 'Aprobada',
-    'rechazada' => 'Rechazada',
-    'desembolsada' => 'Desembolsada',
-    _ => estado,
   };
 }
 
@@ -223,7 +213,8 @@ class _RequestCard extends StatelessWidget {
     final req = request;
     final bgColor = _estadoBackgroundColor(req.estado);
     final badgeColor = _estadoBadgeColor(req.estado);
-    final label = _estadoLabel(req.estado);
+    final step = req.statusStepIndex;
+    final stepLabel = step >= 0 ? 'Paso ${step + 1} de ${RequestModel.totalSteps}' : '';
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -248,18 +239,13 @@ class _RequestCard extends StatelessWidget {
                               .titleSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
-                        if (req.createdAt != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            FormatUtils.formatDate(req.createdAt!),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                    color: AppColors.textDark
-                                        .withValues(alpha: 0.55)),
-                          ),
-                        ],
+                        const SizedBox(height: 4),
+                        Text(
+                          'S/ ${FormatUtils.formatSoles(req.montoSolicitado)} · ${req.plazoMeses} meses',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textDark.withValues(alpha: 0.6),
+                              ),
+                        ),
                       ],
                     ),
                   ),
@@ -271,7 +257,7 @@ class _RequestCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      label,
+                      req.statusLabel,
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -281,44 +267,44 @@ class _RequestCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Row(
                 children: [
-                  _MiniMetric(
-                      label: 'Monto',
-                      value:
-                          'S/ ${FormatUtils.formatSoles(req.montoSolicitado)}'),
-                  const SizedBox(width: 24),
-                  _MiniMetric(
-                      label: 'Plazo', value: '${req.plazoMeses} meses'),
-                  const SizedBox(width: 24),
-                  _MiniMetric(
-                      label: 'Cuota',
-                      value:
-                          'S/ ${FormatUtils.formatSoles(req.cuotaEstimada)}'),
-                ],
-              ),
-              if (req.elegibilidad != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(Icons.check_circle_outline,
-                        size: 16,
-                        color: req.elegibilidad?.toLowerCase() == 'apto'
-                            ? Colors.green.shade700
-                            : AppColors.primary),
-                    const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      req.statusDescription,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
+                            color: AppColors.textDark.withValues(alpha: 0.55),
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (stepLabel.isNotEmpty) ...[
+                    const SizedBox(width: 8),
                     Text(
-                      'Elegibilidad: ${req.elegibilidad}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(fontWeight: FontWeight.w500),
+                      stepLabel,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.secondary,
+                      ),
                     ),
                   ],
+                ],
+              ),
+              if (req.updatedAt != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Actualizado: ${FormatUtils.formatDate(req.updatedAt!)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 11,
+                        color: AppColors.textDark.withValues(alpha: 0.45),
+                      ),
                 ),
               ],
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Text(
@@ -337,35 +323,6 @@ class _RequestCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _MiniMetric extends StatelessWidget {
-  const _MiniMetric({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textDark.withValues(alpha: 0.55),
-              ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-      ],
     );
   }
 }
