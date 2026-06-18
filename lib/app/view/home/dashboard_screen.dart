@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../model/movement_model.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
+import '../../util/format_utils.dart';
 import '../../viewmodel/home_viewmodel.dart';
+import '../widgets/alfin_app_bar.dart';
+import '../widgets/app_bottom_nav.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -13,7 +17,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late final HomeViewModel _viewModel;
-  int _bottomIndex = 0;
 
   @override
   void initState() {
@@ -27,47 +30,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  void _onTabTapped(int index) {
-    if (index == 0) {
-      setState(() => _bottomIndex = 0);
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          index == 1
-              ? 'Cuentas disponibles próximamente.'
-              : index == 2
-                  ? 'Créditos en detalle próximamente.'
-                  : 'Perfil próximamente.',
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _logout() {
-    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-  }
-
-  String _formatDate(DateTime d) {
-    const months = [
-      'ene',
-      'feb',
-      'mar',
-      'abr',
-      'may',
-      'jun',
-      'jul',
-      'ago',
-      'sep',
-      'oct',
-      'nov',
-      'dic',
-    ];
-    return '${d.day} ${months[d.month - 1]} ${d.year}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final vm = _viewModel;
@@ -75,23 +37,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final cr = vm.activeCredit;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: const Text('Inicio'),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.purpleSupport,
-                AppColors.secondary,
-              ],
-            ),
-          ),
-        ),
+      appBar: AlfinAppBar(
+        title: 'Inicio',
         actions: [
           IconButton(
             tooltip: 'Cerrar sesión',
-            onPressed: _logout,
+            onPressed: () =>
+                Navigator.of(context).pushReplacementNamed(AppRoutes.login),
             icon: const Icon(Icons.logout_rounded),
           ),
         ],
@@ -113,19 +65,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: AppColors.textDark.withValues(alpha: 0.65),
                 ),
           ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () =>
+                  Navigator.of(context).pushNamed(AppRoutes.transfers),
+              icon: const Icon(Icons.swap_horiz_rounded),
+              label: const Text('Transferencias y Pagos'),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _BalanceCard(
+            title: 'Mis solicitudes',
+            subtitle: 'Revisa el estado de tus solicitudes de crédito',
+            amountLabel: '',
+            accent: AppColors.purpleSupport,
+            onTap: () =>
+                Navigator.of(context).pushNamed(AppRoutes.requests),
+          ),
           const SizedBox(height: 24),
           _BalanceCard(
             title: acc.accountType,
             subtitle: acc.accountNumber,
-            amountLabel: 'S/ ${HomeViewModel.formatSoles(acc.balance)}',
+            amountLabel: 'S/ ${FormatUtils.formatSoles(acc.balance)}',
             accent: AppColors.primary,
+            onTap: () =>
+                Navigator.of(context).pushReplacementNamed(AppRoutes.accounts),
           ),
           const SizedBox(height: 16),
           _BalanceCard(
             title: cr.productName,
-            subtitle: 'Próximo pago: ${_formatDate(cr.nextPaymentDate)}',
-            amountLabel: 'Pendiente S/ ${HomeViewModel.formatSoles(cr.pendingAmount)}',
+            subtitle:
+                'Próximo pago: ${FormatUtils.formatDate(cr.nextPaymentDate)}',
+            amountLabel:
+                'Pendiente S/ ${FormatUtils.formatSoles(cr.pendingAmount)}',
             accent: AppColors.secondary,
+            onTap: () =>
+                Navigator.of(context).pushReplacementNamed(AppRoutes.credits),
           ),
           const SizedBox(height: 28),
           Text(
@@ -148,32 +125,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _bottomIndex,
-        onDestinationSelected: _onTabTapped,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Inicio',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet_rounded),
-            label: 'Cuentas',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.credit_card_outlined),
-            selectedIcon: Icon(Icons.credit_card_rounded),
-            label: 'Créditos',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person_rounded),
-            label: 'Perfil',
-          ),
-        ],
-      ),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 0),
     );
   }
 }
@@ -184,55 +136,78 @@ class _BalanceCard extends StatelessWidget {
     required this.subtitle,
     required this.amountLabel,
     required this.accent,
+    this.onTap,
   });
 
   final String title;
   final String subtitle;
   final String amountLabel;
   final Color accent;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(width: 5, color: accent),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
+      child: InkWell(
+        onTap: onTap,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 5, color: accent),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textDark,
+                                  ),
+                            ),
                           ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textDark.withValues(alpha: 0.55),
-                          ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      amountLabel,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: accent,
-                          ),
-                    ),
-                  ],
+                          if (onTap != null)
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: accent.withValues(alpha: 0.8),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color:
+                                  AppColors.textDark.withValues(alpha: 0.55),
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        amountLabel,
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: accent,
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -242,7 +217,7 @@ class _BalanceCard extends StatelessWidget {
 class _MovementTile extends StatelessWidget {
   const _MovementTile({required this.item});
 
-  final MovementItem item;
+  final MovementModel item;
 
   @override
   Widget build(BuildContext context) {
@@ -256,7 +231,7 @@ class _MovementTile extends StatelessWidget {
       ),
       subtitle: Text(item.dateLabel),
       trailing: Text(
-        '$prefix S/ ${HomeViewModel.formatSoles(item.amount)}',
+        '$prefix S/ ${FormatUtils.formatSoles(item.amount)}',
         style: TextStyle(
           fontWeight: FontWeight.w600,
           color: color,

@@ -1,11 +1,11 @@
 {
-    "name": "banco_alfinbanco",
-    "short_name": "banco_alfinbanco",
+    "name": "Alfin Banco — Cliente",
+    "short_name": "Cliente",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F3F3F7",
+    "theme_color": "#73058A",
+    "description": "App Cliente / Home Banking — Alfin Banco (modo demostración).",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

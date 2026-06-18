@@ -1,78 +1,88 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
+import '../data/demo_client_data.dart';
 import '../model/account_model.dart';
 import '../model/credit_model.dart';
-
-/// Movimiento mostrado en dashboard (dato de presentación, S9).
-class MovementItem {
-  const MovementItem({
-    required this.description,
-    required this.dateLabel,
-    required this.amount,
-    this.isCredit = false,
-  });
-
-  final String description;
-  final String dateLabel;
-  final double amount;
-  final bool isCredit;
-}
+import '../model/movement_model.dart';
+import '../repository/accounts_repository.dart';
+import '../repository/auth_repository.dart';
+import '../repository/credits_repository.dart';
+import '../repository/profile_repository.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  HomeViewModel() {
+  HomeViewModel({
+    AuthRepository? authRepository,
+    ProfileRepository? profileRepository,
+    AccountsRepository? accountsRepository,
+    CreditsRepository? creditsRepository,
+  })  : _auth = authRepository ?? AuthRepository(),
+        _profileRepository = profileRepository ?? ProfileRepository(),
+        _accountsRepository = accountsRepository ?? AccountsRepository(),
+        _creditsRepository = creditsRepository ?? CreditsRepository() {
     _loadDemoData();
+    unawaited(_loadFromSupabase());
   }
+
+  final AuthRepository _auth;
+  final ProfileRepository _profileRepository;
+  final AccountsRepository _accountsRepository;
+  final CreditsRepository _creditsRepository;
 
   late String clientName;
   late AccountModel savingsAccount;
   late CreditModel activeCredit;
-  late List<MovementItem> recentMovements;
+  late List<MovementModel> recentMovements;
+
+  bool isLoadingRemote = false;
+  bool usingSupabaseData = false;
+  String? loadError;
 
   void _loadDemoData() {
-    clientName = 'Diego';
-    savingsAccount = const AccountModel(
-      accountNumber: '0011-0456-7890123456',
-      accountType: 'Cuenta de ahorros',
-      balance: 2450.80,
-    );
-    activeCredit = CreditModel(
-      productName: 'Préstamo personal',
-      pendingAmount: 5800.00,
-      nextPaymentDate: DateTime(2026, 5, 28),
-    );
-    recentMovements = const [
-      MovementItem(
-        description: 'Transferencia recibida',
-        dateLabel: '12 may 2026',
-        amount: 350.00,
-        isCredit: true,
-      ),
-      MovementItem(
-        description: 'Pago con tarjeta — Supermercado',
-        dateLabel: '10 may 2026',
-        amount: -128.40,
-      ),
-      MovementItem(
-        description: 'Cargo automático — servicios',
-        dateLabel: '08 may 2026',
-        amount: -89.90,
-      ),
-    ];
+    clientName = DemoClientData.clientName;
+    savingsAccount = DemoClientData.savingsAccount;
+    activeCredit = DemoClientData.activeCredit;
+    recentMovements = DemoClientData.homeMovements;
   }
 
-  static String formatSoles(double value) {
-    final sign = value < 0 ? '-' : '';
-    final fixed = value.abs().toStringAsFixed(2);
-    final dot = fixed.indexOf('.');
-    final intPart = fixed.substring(0, dot);
-    final dec = fixed.substring(dot + 1);
-    final rev = intPart.split('').reversed.join();
-    final buf = StringBuffer();
-    for (var i = 0; i < rev.length; i++) {
-      if (i > 0 && i % 3 == 0) buf.write(',');
-      buf.write(rev[i]);
+  Future<void> _loadFromSupabase() async {
+    if (!_auth.isConfigured || _auth.currentUser == null) return;
+
+    isLoadingRemote = true;
+    notifyListeners();
+
+    try {
+      final profile = await _profileRepository.getCurrentProfile();
+      final account = await _accountsRepository.getMainAccount();
+      final credit = await _creditsRepository.getActiveCredit();
+      final movements = await _accountsRepository.getMovements();
+
+      if (profile != null) {
+        final parts = profile.fullName.split(' ');
+        clientName = parts.isNotEmpty ? parts.first : profile.fullName;
+      }
+
+      if (account != null) {
+        savingsAccount = account;
+      }
+
+      if (credit != null) {
+        activeCredit = credit;
+      }
+
+      if (movements.isNotEmpty) {
+        recentMovements = movements.take(5).toList();
+      }
+
+      usingSupabaseData = true;
+      loadError = null;
+    } catch (e) {
+      loadError = 'No se pudieron cargar los datos remotos.';
+      debugPrint('[HomeViewModel] $e');
     }
-    final intFormatted = buf.toString().split('').reversed.join();
-    return '$sign$intFormatted.$dec';
+
+    isLoadingRemote = false;
+    notifyListeners();
   }
 }

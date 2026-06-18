@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _dniController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   late final AuthViewModel _viewModel;
 
@@ -25,14 +25,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _viewModel.dispose();
-    _dniController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _onSubmit() async {
     await _viewModel.login(
-      _dniController.text,
+      _emailController.text,
       _passwordController.text,
     );
     if (!mounted) return;
@@ -90,19 +90,56 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Demo referencial: DNI ${_viewModel.demoDni} · clave ${_viewModel.demoPassword}',
+                            'Modo Supabase: usa correo y contraseña registrados.',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: AppColors.textDark.withValues(alpha: 0.55),
                                 ),
                           ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Modo demostración disponible si Supabase no responde.',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textDark.withValues(alpha: 0.55),
+                                ),
+                          ),
+                          if (_viewModel.usedDemoMode) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Ingresaste en modo demostración.',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.secondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ],
+                          if (_viewModel.errorMessage != null) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.primary.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Text(
+                                _viewModel.errorMessage!,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.primary,
+                                    ),
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 24),
                           TextField(
-                            controller: _dniController,
-                            keyboardType: TextInputType.number,
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
+                            autocorrect: false,
                             decoration: const InputDecoration(
-                              labelText: 'Usuario o DNI',
-                              hintText: 'Ingrese su DNI',
+                              labelText: 'Correo electrónico',
+                              hintText: 'tu@correo.com',
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -134,6 +171,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                     )
                                   : const Text('Ingresar'),
                             ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: loading
+                                ? null
+                                : () => Navigator.of(context)
+                                    .pushNamed(AppRoutes.register),
+                            child: const Text('¿No tienes cuenta? Regístrate'),
                           ),
                         ],
                       ),

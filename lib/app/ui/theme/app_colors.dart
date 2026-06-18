@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Paleta de marca Alfin Banco (Semana 9 — referencia visual).
+/// Paleta de marca Alfin Banco.
 abstract final class AppColors {
   static const Color primary = Color(0xFFFA4616);
   static const Color secondary = Color(0xFF8F1A95);
