@@ -7,18 +7,23 @@ import '../model/credit_model.dart';
 import '../model/payment_schedule_model.dart';
 import '../repository/auth_repository.dart';
 import '../repository/credits_repository.dart';
+import '../repository/disbursement_repository.dart';
 
 class CreditsViewModel extends ChangeNotifier {
   CreditsViewModel({
     AuthRepository? authRepository,
     CreditsRepository? creditsRepository,
+    DisbursementRepository? disbursementRepository,
   })  : _auth = authRepository ?? AuthRepository(),
-        _creditsRepository = creditsRepository ?? CreditsRepository() {
+        _creditsRepository = creditsRepository ?? CreditsRepository(),
+        _disbursementRepository =
+            disbursementRepository ?? DisbursementRepository() {
     _startLoading();
   }
 
   final AuthRepository _auth;
   final CreditsRepository _creditsRepository;
+  final DisbursementRepository _disbursementRepository;
 
   CreditModel? activeCredit;
   double monthlyInstallment = 0;
@@ -49,6 +54,12 @@ class CreditsViewModel extends ChangeNotifier {
     }
 
     try {
+      try {
+        await _disbursementRepository.reflectDisbursedRequests();
+      } catch (e) {
+        debugPrint('[CREDITS] disbursement reflection error: $e');
+      }
+
       final creditRow = await _creditsRepository.getActiveCreditRow();
       final credit = await _creditsRepository.getActiveCredit();
 

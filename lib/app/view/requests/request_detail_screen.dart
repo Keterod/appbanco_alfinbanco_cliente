@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/session/session_timeout_manager.dart';
 import '../../model/request_model.dart';
+import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
 import '../../util/format_utils.dart';
 
@@ -194,6 +195,13 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
             ] else ...[
               const SizedBox(height: 16),
               _buildNoDecisionCard(context, req),
+            ],
+            if (req.isDisbursed) ...[
+              const SizedBox(height: 16),
+              _buildDisbursedCard(context, req),
+            ] else if (req.isApproved) ...[
+              const SizedBox(height: 16),
+              _buildApprovedCard(context, req),
             ],
             const SizedBox(height: 16),
             _SectionCard(
@@ -616,6 +624,115 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Te avisaremos cuando tu expediente cambie de estado.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textDark.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDisbursedCard(BuildContext context, RequestModel req) {
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.credit_card_rounded, color: Colors.green.shade700),
+              const SizedBox(width: 8),
+              Text(
+                'Crédito desembolsado',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.green.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Este crédito ya está disponible en tus productos.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.green.shade800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context)
+                        .pushReplacementNamed(AppRoutes.credits),
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    label: const Text('Ver en Mis créditos'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildApprovedCard(BuildContext context, RequestModel req) {
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.hourglass_bottom_rounded, color: Colors.blue.shade700),
+              const SizedBox(width: 8),
+              Text(
+                'Aprobado',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pendiente de desembolso',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade700,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Cuando el desembolso se registre, aparecerá en tus créditos.',
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textDark.withValues(alpha: 0.7),
