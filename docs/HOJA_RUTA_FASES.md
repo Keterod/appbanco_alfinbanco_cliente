@@ -44,10 +44,21 @@
 - [x] Refresco de Dashboard/Cuentas al regresar post-operación
 - [x] Documentación FASE_C4_2_OPERACIONES_PERSISTENTES.md
 
-## Fase C4.3 — Mejoras transaccionales (pendiente)
+## Fase C4.3 — Historial de operaciones ✅ (COMPLETADA)
+- [x] Modelo `OperationModel`
+- [x] Repositorio `getOperations()` desde `clientes_operaciones`
+- [x] ViewModel con load/refresh
+- [x] Pantalla historial con pull-to-refresh, vacío, error
+- [x] Pantalla detalle/comprobante
+- [x] Ruta `/operations` + `/operations/detail`
+- [x] Acceso desde Dashboard y Perfil
+- [x] Documentación FASE_C4_3_HISTORIAL_OPERACIONES.md
+
+## Fase C4.4 — Mejoras de historial (pendiente)
 - [ ] RPC transaccional en backend
-- [ ] Manejo de límite diario de operaciones
-- [ ] Historial completo de operaciones con paginación
+- [ ] Historial con paginación
+- [ ] Filtros por tipo y fecha
+- [ ] Descarga de comprobante PDF
 - [ ] SQLite para caché offline
 
 ## Fase C5 — Experiencia completa (pendiente)

@@ -9,4 +9,6 @@ abstract final class AppRoutes {
   static const String profile = '/profile';
   static const String requests = '/requests';
   static const String requestDetail = '/requests/detail';
+  static const String operations = '/operations';
+  static const String operationDetail = '/operations/detail';
 }

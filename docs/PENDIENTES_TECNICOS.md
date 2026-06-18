@@ -31,8 +31,20 @@
 - [x] Actualización de saldo en `clientes_cuentas`
 - [x] Validación de saldo suficiente antes de operar
 
-## Pendientes para fase siguiente (C4.3)
+## Implementados en Fase C4.3
+- [x] Modelo `OperationModel`
+- [x] Repositorio `getOperations()` desde `clientes_operaciones`
+- [x] ViewModel con load/refresh
+- [x] Pantalla historial con pull-to-refresh, vacío, error
+- [x] Pantalla detalle/comprobante
+- [x] Ruta `/operations` + `/operations/detail`
+- [x] Acceso desde Dashboard y Perfil
+
+## Pendientes para fase siguiente (C4.4)
 - [ ] RPC transaccional en backend (reemplazar 3 pasos del cliente)
+- [ ] Historial con paginación
+- [ ] Filtros por tipo y fecha
+- [ ] Descarga de comprobante PDF
 - [ ] Reflejar solicitudes aprobadas → créditos activos
 - [ ] Pago de cuota real desde créditos desembolsados
 - [ ] SQLite / modo offline

@@ -32,19 +32,22 @@
 | 24 | Validación de saldo insuficiente | ✅ Cumple | Transferencias — formulario | Error "Saldo insuficiente para realizar la operación." |
 | 25 | Refresco de saldo post-operación | ✅ Cumple | Dashboard + Cuentas | Nuevo saldo y movimiento visibles al regresar |
 | 26 | Perfil de usuario | ✅ Cumple | `ProfileScreen` (`/profile`) | Datos, DNI censurado, tipo cliente |
-| 24 | Cierre de sesión | ✅ Cumple | Dashboard (AppBar) y Perfil | signOut Supabase + clearActivity + pushReplacementNamed |
-| 25 | Navegación funcional | ✅ Cumple | Bottom nav + rutas nombradas | Inicio, Cuentas, Créditos, Perfil; links entre módulos; ahora con splash inicial |
-| 26 | Arquitectura MVVM | ✅ Cumple | `lib/app/model`, `viewmodel`, `view` | `ChangeNotifier` + `ListenableBuilder` |
-| 27 | Datos hardcodeados/mock | ✅ Cumple | ViewModels | Sin API ni persistencia (excepto shared_preferences para sesión) |
-| 30 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
-| 31 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
+| 27 | Historial de operaciones | ✅ Cumple | `OperationsScreen` (`/operations`) | Lista con pull-to-refresh, vacío, error |
+| 28 | Comprobante de operación | ✅ Cumple | `OperationDetailScreen` (`/operations/detail`) | Detalle completo con N° operación, fecha, monto, origen, destino |
+| 29 | Acceso desde Dashboard y Perfil | ✅ Cumple | Dashboard + Perfil | Tarjeta "Mis operaciones" e "Historial de operaciones" |
+| 30 | Cierre de sesión | ✅ Cumple | Dashboard (AppBar) y Perfil | signOut Supabase + clearActivity + pushReplacementNamed |
+| 31 | Navegación funcional | ✅ Cumple | Bottom nav + rutas nombradas | Inicio, Cuentas, Créditos, Perfil, Operaciones; links entre módulos |
+| 32 | Arquitectura MVVM | ✅ Cumple | `lib/app/model`, `viewmodel`, `view` | `ChangeNotifier` + `ListenableBuilder` |
+| 33 | Datos desde Supabase | ✅ Cumple | Repositorios | Cuentas, movimientos, créditos, perfil, solicitudes, operaciones desde Supabase |
+| 34 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
+| 35 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
 
 ## Resumen de cumplimiento
 
 | Métrica | Valor |
 |---------|-------|
-| Requisitos evaluados | 31 |
-| Cumplidos | 31 |
+| Requisitos evaluados | 35 |
+| Cumplidos | 35 |
 | Pendientes (esta entrega) | 0 |
 
 ## Fuera de alcance (fase backend)

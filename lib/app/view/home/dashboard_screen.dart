@@ -139,6 +139,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           accent: AppColors.purpleSupport,
           onTap: () => Navigator.of(context).pushNamed(AppRoutes.requests),
         ),
+        const SizedBox(height: 12),
+        _BalanceCard(
+          title: 'Mis operaciones',
+          subtitle: 'Revisa tus transferencias y pagos realizados',
+          amountLabel: '',
+          accent: AppColors.purpleSupport,
+          onTap: () => Navigator.of(context).pushNamed(AppRoutes.operations),
+        ),
         const SizedBox(height: 24),
         if (acc != null)
           _BalanceCard(

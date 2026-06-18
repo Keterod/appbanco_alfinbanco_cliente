@@ -182,6 +182,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         const SizedBox(height: 24),
         Text(
+          'Historial',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.receipt_long_outlined,
+                color: AppColors.purpleSupport),
+            title: const Text('Historial de operaciones'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () =>
+                Navigator.of(context).pushNamed(AppRoutes.operations),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text(
           'Seguridad',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,

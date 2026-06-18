@@ -43,6 +43,8 @@ android/ ios/ web/ ...                 # Plataformas Flutter (template)
 | Créditos | `credits_screen.dart` | `credits_viewmodel.dart` |
 | Mis Solicitudes | `requests_screen.dart`, `request_detail_screen.dart` | `requests_viewmodel.dart` |
 | Transferencias y pagos | `transfers_screen.dart` | `transfers_viewmodel.dart` |
+| Historial de operaciones | `operations_screen.dart` | `operations_viewmodel.dart` |
+| Comprobante de operación | `operation_detail_screen.dart` | — (datos por argumento) |
 | Perfil | `profile_screen.dart` | `profile_viewmodel.dart` |
 
 ## Patrón MVVM aplicado
@@ -96,6 +98,8 @@ Model (clases Dart inmutables o simples)
 | `/requests` | `AppRoutes.requests` | Mis Solicitudes |
 | `/requests/detail` | `AppRoutes.requestDetail` | Detalle individual (`onGenerateRoute`, arg `RequestModel`) |
 | `/transfers` | `AppRoutes.transfers` | Transferencias (`onGenerateRoute`, arg `pagoCredito`) |
+| `/operations` | `AppRoutes.operations` | Historial de operaciones |
+| `/operations/detail` | `AppRoutes.operationDetail` | Comprobante (`onGenerateRoute`, arg `OperationModel`) |
 | `/profile` | `AppRoutes.profile` | Perfil |
 
 Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
@@ -124,6 +128,7 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 - La sesión temporal solo usa shared_preferences, no secure storage.
 - "Contactar asesor" es simulado (AlertDialog), no hay envío real de notificación.
 - Operación → movimiento → saldo se ejecuta desde el cliente sin transacción atómica; en producción debe ser RPC.
+- Historial de operaciones sin paginación (carga completa).
 
 ## Próximos pasos recomendados
 

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../model/operation_model.dart';
 import '../model/request_model.dart';
 import '../view/accounts/accounts_screen.dart';
 import '../view/auth/login_screen.dart';
 import '../view/auth/register_screen.dart';
 import '../view/credits/credits_screen.dart';
 import '../view/home/dashboard_screen.dart';
+import '../view/operations/operation_detail_screen.dart';
+import '../view/operations/operations_screen.dart';
 import '../view/profile/profile_screen.dart';
 import '../view/requests/request_detail_screen.dart';
 import '../view/requests/requests_screen.dart';
@@ -34,6 +37,7 @@ class AppNavigation extends StatelessWidget {
         AppRoutes.credits: (_) => const CreditsScreen(),
         AppRoutes.profile: (_) => const ProfileScreen(),
         AppRoutes.requests: (_) => const RequestsScreen(),
+        AppRoutes.operations: (_) => const OperationsScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.transfers) {
@@ -50,6 +54,13 @@ class AppNavigation extends StatelessWidget {
           final request = settings.arguments as RequestModel;
           return MaterialPageRoute<void>(
             builder: (_) => RequestDetailScreen(request: request),
+            settings: settings,
+          );
+        }
+        if (settings.name == AppRoutes.operationDetail) {
+          final operation = settings.arguments as OperationModel;
+          return MaterialPageRoute<void>(
+            builder: (_) => OperationDetailScreen(operation: operation),
             settings: settings,
           );
         }

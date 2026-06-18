@@ -117,6 +117,20 @@ Guía para capturas de pantalla y exposición oral. Orden recomendado para una p
 
 ---
 
+## 10d. Historial de operaciones
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Pantalla "Mis operaciones" con lista de transferencias/pagos realizados; pull-to-refresh; estado vacío si no hay operaciones |
+| **Qué explicar** | Consulta `clientes_operaciones` en Supabase filtrada por `cliente_id = auth.uid()`; ordenado por fecha descendente |
+
+## 10e. Comprobante de operación
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Tocar una operación → pantalla "Comprobante" con N° operación, estado, fecha, tipo, origen, destino, descripción, monto, botones "Volver al inicio" y "Nueva operación" |
+| **Qué explicar** | Detalle completo de la operación leído desde Supabase; reemplaza el comprobante local simulado de fases anteriores |
+
 ## 11. Perfil de usuario
 
 | Aspecto | Detalle |
