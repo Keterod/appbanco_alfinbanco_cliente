@@ -112,7 +112,34 @@ Guía para capturas de pantalla y exposición oral. Orden recomendado para una p
 
 ---
 
-## 12. Cierre de sesión
+## 12. Mis Solicitudes — Pull-to-refresh
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Lista de solicitudes, hacer pull hacia abajo, ver indicador de refresh, SnackBar si falla |
+| **Qué explicar** | Los datos se mantienen si falla el refresh; el RefreshIndicator permite actualización manual |
+
+---
+
+## 13. Mis Solicitudes — Pantalla detalle
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Tocar una solicitud → pantalla detalle con expediente, badge grande, métricas, pre-evaluación, cronograma completo, botón Contactar asesor |
+| **Qué explicar** | Vista individual con toda la información de la solicitud; las cuotas se muestran en tarjetas compactas para evitar overflow horizontal |
+
+---
+
+## 14. Contactar asesor
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Botón "Contactar asesor" al final del detalle → AlertDialog con mensaje y número de expediente |
+| **Qué explicar** | Acción simulada; en producción enviaría una notificación al asesor asignado |
+
+---
+
+## 15. Cierre de sesión
 
 | Aspecto | Detalle |
 |---------|---------|

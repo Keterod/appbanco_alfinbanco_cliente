@@ -10,6 +10,7 @@ class RequestsViewModel extends ChangeNotifier {
   final RequestsRepository _repository;
 
   bool isLoading = false;
+  bool isRefreshing = false;
   String? errorMessage;
   List<RequestModel> requests = [];
 
@@ -30,7 +31,22 @@ class RequestsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> refresh() async {
-    await loadRequests();
+  Future<bool> refresh() async {
+    isRefreshing = true;
+    notifyListeners();
+
+    try {
+      final result = await _repository.getRequests();
+      requests = result;
+      errorMessage = null;
+      isRefreshing = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('[RequestsViewModel] refresh error: $e');
+      isRefreshing = false;
+      notifyListeners();
+      return false;
+    }
   }
 }

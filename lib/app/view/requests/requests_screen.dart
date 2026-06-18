@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/session/session_timeout_manager.dart';
 import '../../model/request_model.dart';
+import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
 import '../../util/format_utils.dart';
 import '../../viewmodel/requests_viewmodel.dart';
@@ -34,28 +35,16 @@ class _RequestsScreenState extends State<RequestsScreen> {
     super.dispose();
   }
 
-  Color _estadoColor(String estado) {
-    return switch (estado.toLowerCase()) {
-      'enviada' || 'pendiente' => AppColors.secondary,
-      'en evaluación' || 'evaluacion' || 'en_evaluacion' => Colors.orange,
-      'aprobada' => Colors.green.shade700,
-      'rechazada' => AppColors.primary,
-      'desembolsada' => Colors.teal,
-      _ => AppColors.textDark,
-    };
-  }
-
-  String _estadoLabel(String estado) {
-    return switch (estado.toLowerCase()) {
-      'enviada' => 'Enviada',
-      'pendiente' => 'Pendiente',
-      'evaluacion' || 'en_evaluacion' => 'En evaluación',
-      'en evaluación' => 'En evaluación',
-      'aprobada' => 'Aprobada',
-      'rechazada' => 'Rechazada',
-      'desembolsada' => 'Desembolsada',
-      _ => estado,
-    };
+  Future<void> _onRefresh() async {
+    final success = await _viewModel.refresh();
+    if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo actualizar. Intenta de nuevo.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -86,7 +75,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: _viewModel.refresh,
+                      onPressed: _viewModel.loadRequests,
                       icon: const Icon(Icons.refresh),
                       label: const Text('Reintentar'),
                     ),
@@ -97,60 +86,36 @@ class _RequestsScreenState extends State<RequestsScreen> {
           }
 
           if (_viewModel.requests.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.inbox_outlined,
-                        size: 64, color: AppColors.grayLight),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Aún no tienes solicitudes registradas.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(color: AppColors.textDark),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Las solicitudes creadas por tu asesor aparecerán aquí.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(
-                              color:
-                                  AppColors.textDark.withValues(alpha: 0.55)),
-                    ),
-                  ],
-                ),
-              ),
-            );
+            return _EmptyState(onRefresh: _onRefresh);
           }
 
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-            children: [
-              Text(
-                'Tus solicitudes de crédito',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
-                    ),
-              ),
-              const SizedBox(height: 16),
-              for (final req in _viewModel.requests) ...[
-                _RequestCard(
-                  request: req,
-                  estadoColor: _estadoColor(req.estado),
-                  estadoLabel: _estadoLabel(req.estado),
+          return RefreshIndicator(
+            onRefresh: _onRefresh,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+              children: [
+                Text(
+                  'Tus solicitudes de crédito',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+                for (final req in _viewModel.requests) ...[
+                  _RequestCard(
+                    request: req,
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        AppRoutes.requestDetail,
+                        arguments: req,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                ],
               ],
-            ],
+            ),
           );
         },
       ),
@@ -159,150 +124,218 @@ class _RequestsScreenState extends State<RequestsScreen> {
   }
 }
 
-class _RequestCard extends StatefulWidget {
-  const _RequestCard({
-    required this.request,
-    required this.estadoColor,
-    required this.estadoLabel,
-  });
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.onRefresh});
 
-  final RequestModel request;
-  final Color estadoColor;
-  final String estadoLabel;
-
-  @override
-  State<_RequestCard> createState() => _RequestCardState();
-}
-
-class _RequestCardState extends State<_RequestCard> {
-  bool _expanded = false;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    final req = widget.request;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView(
         children: [
-          InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              req.numeroExpediente,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            if (req.createdAt != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                FormatUtils.formatDate(req.createdAt!),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                        color: AppColors.textDark
-                                            .withValues(alpha: 0.55)),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      Chip(
-                        label: Text(
-                          widget.estadoLabel,
-                          style: const TextStyle(
-                              fontSize: 11, color: AppColors.white),
-                        ),
-                        backgroundColor: widget.estadoColor,
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      _MiniMetric(
-                          label: 'Monto',
-                          value:
-                              'S/ ${FormatUtils.formatSoles(req.montoSolicitado)}'),
-                      const SizedBox(width: 24),
-                      _MiniMetric(
-                          label: 'Plazo', value: '${req.plazoMeses} meses'),
-                      const SizedBox(width: 24),
-                      _MiniMetric(
-                          label: 'Cuota',
-                          value:
-                              'S/ ${FormatUtils.formatSoles(req.cuotaEstimada)}'),
-                    ],
-                  ),
-                  if (req.elegibilidad != null) ...[
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.assignment_outlined,
+                        size: 72, color: AppColors.grayLight),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Aún no tienes solicitudes registradas',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
                     const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Icon(Icons.check_circle_outline,
-                            size: 16,
-                            color: req.elegibilidad?.toLowerCase() == 'apto'
-                                ? Colors.green.shade700
-                                : AppColors.primary),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Elegibilidad: ${req.elegibilidad}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(fontWeight: FontWeight.w500),
-                        ),
-                      ],
+                    Text(
+                      'Cuando un asesor registre una solicitud de crédito, aparecerá aquí.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textDark.withValues(alpha: 0.55),
+                          ),
                     ),
                   ],
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text(
-                        _expanded
-                            ? 'Ocultar detalles'
-                            : 'Ver detalle completo',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: AppColors.secondary),
-                      ),
-                      Icon(
-                        _expanded
-                            ? Icons.expand_less
-                            : Icons.expand_more,
-                        size: 18,
-                        color: AppColors.secondary,
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-          if (_expanded) ...[
-            const Divider(height: 1),
-            _PreEvalSection(request: req),
-            if (req.cronograma.isNotEmpty) ...[
-              const Divider(height: 1),
-              _CronogramaSection(request: req),
-            ],
-          ],
         ],
+      ),
+    );
+  }
+}
+
+Color _estadoBadgeColor(String estado) {
+  return switch (estado.toLowerCase()) {
+    'enviada' || 'pendiente' => Colors.blue.shade700,
+    'en evaluación' || 'evaluacion' || 'en_evaluacion' => Colors.amber.shade800,
+    'observada' => Colors.orange.shade800,
+    'aprobada' || 'desembolsada' => Colors.green.shade700,
+    'rechazada' => Colors.red.shade700,
+    _ => Colors.grey.shade700,
+  };
+}
+
+Color _estadoBackgroundColor(String estado) {
+  return switch (estado.toLowerCase()) {
+    'enviada' || 'pendiente' => Colors.blue.shade50,
+    'en evaluación' || 'evaluacion' || 'en_evaluacion' => Colors.amber.shade50,
+    'observada' => Colors.orange.shade50,
+    'aprobada' || 'desembolsada' => Colors.green.shade50,
+    'rechazada' => Colors.red.shade50,
+    _ => Colors.grey.shade50,
+  };
+}
+
+String _estadoLabel(String estado) {
+  return switch (estado.toLowerCase()) {
+    'enviada' => 'Enviada',
+    'pendiente' => 'Pendiente',
+    'evaluacion' || 'en_evaluacion' => 'En evaluación',
+    'en evaluación' => 'En evaluación',
+    'observada' => 'Observada',
+    'aprobada' => 'Aprobada',
+    'rechazada' => 'Rechazada',
+    'desembolsada' => 'Desembolsada',
+    _ => estado,
+  };
+}
+
+class _RequestCard extends StatelessWidget {
+  const _RequestCard({
+    required this.request,
+    required this.onTap,
+  });
+
+  final RequestModel request;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final req = request;
+    final bgColor = _estadoBackgroundColor(req.estado);
+    final badgeColor = _estadoBadgeColor(req.estado);
+    final label = _estadoLabel(req.estado);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          req.numeroExpediente,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        if (req.createdAt != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            FormatUtils.formatDate(req.createdAt!),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                    color: AppColors.textDark
+                                        .withValues(alpha: 0.55)),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: badgeColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  _MiniMetric(
+                      label: 'Monto',
+                      value:
+                          'S/ ${FormatUtils.formatSoles(req.montoSolicitado)}'),
+                  const SizedBox(width: 24),
+                  _MiniMetric(
+                      label: 'Plazo', value: '${req.plazoMeses} meses'),
+                  const SizedBox(width: 24),
+                  _MiniMetric(
+                      label: 'Cuota',
+                      value:
+                          'S/ ${FormatUtils.formatSoles(req.cuotaEstimada)}'),
+                ],
+              ),
+              if (req.elegibilidad != null) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(Icons.check_circle_outline,
+                        size: 16,
+                        color: req.elegibilidad?.toLowerCase() == 'apto'
+                            ? Colors.green.shade700
+                            : AppColors.primary),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Elegibilidad: ${req.elegibilidad}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text(
+                    'Ver detalle',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.secondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.chevron_right,
+                      size: 18, color: AppColors.secondary),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -333,186 +366,6 @@ class _MiniMetric extends StatelessWidget {
               ),
         ),
       ],
-    );
-  }
-}
-
-class _PreEvalSection extends StatelessWidget {
-  const _PreEvalSection({required this.request});
-
-  final RequestModel request;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Pre-evaluación crediticia',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: 12),
-          if (request.scorePreEvaluacion != null)
-            _DetailRow(
-              label: 'Score',
-              value: '${request.scorePreEvaluacion}',
-            ),
-          if (request.riesgoAsignado != null)
-            _DetailRow(label: 'Riesgo', value: request.riesgoAsignado!),
-          if (request.ratioCapacidadPago != null)
-            _DetailRow(
-              label: 'Ratio capacidad pago',
-              value:
-                  '${(request.ratioCapacidadPago! * 100).toStringAsFixed(1)} %',
-            ),
-          if (request.scorePreEvaluacion == null &&
-              request.riesgoAsignado == null &&
-              request.ratioCapacidadPago == null)
-            Text(
-              'Sin datos de pre-evaluación disponibles.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textDark.withValues(alpha: 0.55),
-                  ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CronogramaSection extends StatelessWidget {
-  const _CronogramaSection({required this.request});
-
-  final RequestModel request;
-
-  @override
-  Widget build(BuildContext context) {
-    final visible = request.cronograma.length > 3
-        ? request.cronograma.take(3).toList()
-        : request.cronograma;
-    final hasMore = request.cronograma.length > 3;
-
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Cronograma de pagos',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Table(
-            columnWidths: const {
-              0: FlexColumnWidth(0.5),
-              1: FlexColumnWidth(1.2),
-              2: FlexColumnWidth(1),
-              3: FlexColumnWidth(1),
-              4: FlexColumnWidth(1),
-            },
-            children: [
-              TableRow(
-                children: [
-                  _TableHeader('#'),
-                  _TableHeader('Fecha'),
-                  _TableHeader('Capital'),
-                  _TableHeader('Interés'),
-                  _TableHeader('Saldo'),
-                ],
-              ),
-              for (final row in visible) ...[
-                TableRow(
-                  children: [
-                    _TableCell('${row.numeroCuota}'),
-                    _TableCell(row.fechaPago != null
-                        ? FormatUtils.formatDate(row.fechaPago!)
-                        : '—'),
-                    _TableCell('S/ ${FormatUtils.formatSoles(row.capital)}'),
-                    _TableCell('S/ ${FormatUtils.formatSoles(row.interes)}'),
-                    _TableCell('S/ ${FormatUtils.formatSoles(row.saldo)}'),
-                  ],
-                ),
-              ],
-            ],
-          ),
-          if (hasMore) ...[
-            const SizedBox(height: 8),
-            Text(
-              '+${request.cronograma.length - 3} cuotas más',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.secondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textDark.withValues(alpha: 0.6),
-                  )),
-          Text(value,
-              style: const TextStyle(fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-}
-
-class _TableHeader extends StatelessWidget {
-  const _TableHeader(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textDark.withValues(alpha: 0.6),
-            ),
-      ),
-    );
-  }
-}
-
-class _TableCell extends StatelessWidget {
-  const _TableCell(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.bodySmall,
-      ),
     );
   }
 }

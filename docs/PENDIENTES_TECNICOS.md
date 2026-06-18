@@ -12,9 +12,15 @@
 - [x] Logout real con signOut + limpieza de sesión temporal
 - [x] Actualización de timestamp al navegar a pantallas principales
 
+## Implementados en Fase C3
+- [x] Pull-to-refresh en RequestsScreen
+- [x] Pantalla detalle individual de solicitud
+- [x] Cronograma completo en detalle
+- [x] Contactar asesor (simulado vía AlertDialog)
+- [x] Badges de estado con colores suaves
+- [x] Estado vacío mejorado
+
 ## Pendientes para fase siguiente
-- [ ] Refrescar automáticamente al entrar a pantalla (pull-to-refresh)
-- [ ] Pantalla detalle individual de solicitud
 - [ ] Reflejar solicitudes aprobadas → créditos activos
 - [ ] Pago de cuota real desde créditos desembolsados
 - [ ] SQLite / modo offline

@@ -41,7 +41,7 @@ android/ ios/ web/ ...                 # Plataformas Flutter (template)
 | Inicio | `dashboard_screen.dart` | `home_viewmodel.dart` |
 | Cuentas / Ahorros | `accounts_screen.dart` | `accounts_viewmodel.dart` |
 | Créditos | `credits_screen.dart` | `credits_viewmodel.dart` |
-| Mis Solicitudes | `requests_screen.dart` | `requests_viewmodel.dart` |
+| Mis Solicitudes | `requests_screen.dart`, `request_detail_screen.dart` | `requests_viewmodel.dart` |
 | Transferencias y pagos | `transfers_screen.dart` | `transfers_viewmodel.dart` |
 | Perfil | `profile_screen.dart` | `profile_viewmodel.dart` |
 
@@ -94,6 +94,7 @@ Model (clases Dart inmutables o simples)
 | `/accounts` | `AppRoutes.accounts` | Cuentas |
 | `/credits` | `AppRoutes.credits` | Créditos |
 | `/requests` | `AppRoutes.requests` | Mis Solicitudes |
+| `/requests/detail` | `AppRoutes.requestDetail` | Detalle individual (`onGenerateRoute`, arg `RequestModel`) |
 | `/transfers` | `AppRoutes.transfers` | Transferencias (`onGenerateRoute`, arg `pagoCredito`) |
 | `/profile` | `AppRoutes.profile` | Perfil |
 
@@ -109,6 +110,8 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 6. **`flutter_launcher_icons`** — icono desde `alfin_logo.png` (solo dev/build).
 7. **Sesión temporal con shared_preferences** — `SessionTimeoutManager` guarda timestamp de última actividad.
 8. **Timeout de 5 minutos** — constante configurable; al expirar se cierra sesión y redirige a Login.
+9. **Pull-to-refresh con RefreshIndicator** — `isRefreshing` separado de `isLoading`; mantiene datos anteriores en fallo.
+10. **Badges de estado con colores suaves** — `Container` con `BorderRadius` en lugar de `Chip`; colores Material `shade50`/`shade700`.
 
 ## Limitaciones actuales
 
@@ -119,6 +122,8 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 - Sin tests automatizados en el repositorio.
 - Sin modo offline real: sin internet no se puede iniciar sesión.
 - La sesión temporal solo usa shared_preferences, no secure storage.
+- "Contactar asesor" es simulado (AlertDialog), no hay envío real de notificación.
+- Solo `solicitudes_credito` está conectada a Supabase real; cuentas, créditos y movimientos siguen siendo mock.
 
 ## Próximos pasos recomendados
 

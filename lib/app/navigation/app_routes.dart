@@ -8,4 +8,5 @@ abstract final class AppRoutes {
   static const String transfers = '/transfers';
   static const String profile = '/profile';
   static const String requests = '/requests';
+  static const String requestDetail = '/requests/detail';
 }

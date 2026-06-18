@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../model/request_model.dart';
 import '../view/accounts/accounts_screen.dart';
 import '../view/auth/login_screen.dart';
 import '../view/auth/register_screen.dart';
 import '../view/credits/credits_screen.dart';
 import '../view/home/dashboard_screen.dart';
 import '../view/profile/profile_screen.dart';
+import '../view/requests/request_detail_screen.dart';
 import '../view/requests/requests_screen.dart';
 import '../view/splash/splash_screen.dart';
 import '../view/transfers/transfers_screen.dart';
@@ -41,6 +43,13 @@ class AppNavigation extends StatelessWidget {
           }
           return MaterialPageRoute<void>(
             builder: (_) => TransfersScreen(initialOperationType: type),
+            settings: settings,
+          );
+        }
+        if (settings.name == AppRoutes.requestDetail) {
+          final request = settings.arguments as RequestModel;
+          return MaterialPageRoute<void>(
+            builder: (_) => RequestDetailScreen(request: request),
             settings: settings,
           );
         }

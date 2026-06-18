@@ -21,12 +21,14 @@
 - [x] Actualización de timestamp en pantallas principales
 - [x] Documentación FASE_C2_SESION_TEMPORAL.md
 
-## Fase C3 — Mejoras a solicitudes (pendiente)
-- [ ] Pull-to-refresh
-- [ ] Indicador de carga inicial con shimmer
-- [ ] Pantalla detalle individual
-- [ ] Acción "Contactar asesor"
-- [ ] Badge notificación si hay cambios de estado
+## Fase C3 — Mejoras a solicitudes ✅ (COMPLETADA)
+- [x] Pull-to-refresh con RefreshIndicator
+- [x] Pantalla detalle individual
+- [x] Cronograma completo con tarjetas compactas
+- [x] Contactar asesor (AlertDialog simulado)
+- [x] Badges de estado con colores suaves
+- [x] Estado vacío mejorado
+- [x] Documentación FASE_C3_MEJORAS_SOLICITUDES.md
 
 ## Fase C4 — Core funcional (pendiente)
 - [ ] Conectar `clientes_cuentas` con datos reales
