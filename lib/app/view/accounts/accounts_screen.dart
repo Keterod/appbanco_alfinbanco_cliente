@@ -7,6 +7,7 @@ import '../../model/movement_model.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
 import '../../util/format_utils.dart';
+import '../../model/account_model.dart';
 import '../../viewmodel/accounts_viewmodel.dart';
 import '../widgets/alfin_app_bar.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -51,91 +52,176 @@ class _AccountsScreenState extends State<AccountsScreen> {
         listenable: _viewModel,
         builder: (context, _) {
           final vm = _viewModel;
+
+          if (vm.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (vm.loadError != null && !vm.usingSupabaseData) {
+            return _buildError(context);
+          }
+
           final acc = vm.primaryAccount;
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        acc.accountType,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                      const SizedBox(height: 12),
-                      _InfoRow(
-                        label: 'Número de cuenta',
-                        value: acc.accountNumber,
-                      ),
-                      const SizedBox(height: 8),
-                      _InfoRow(label: 'CCI', value: vm.cci),
-                      const Divider(height: 28),
-                      _InfoRow(
-                        label: 'Saldo disponible',
-                        value: 'S/ ${FormatUtils.formatSoles(vm.availableBalance)}',
-                        valueStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      _InfoRow(
-                        label: 'Saldo contable',
-                        value: 'S/ ${FormatUtils.formatSoles(vm.accountingBalance)}',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _showStatementSnackBar,
-                      icon: const Icon(Icons.receipt_long_outlined),
-                      label: const Text('Ver estado de cuenta'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.of(context)
-                          .pushNamed(AppRoutes.transfers),
-                      icon: const Icon(Icons.swap_horiz_rounded),
-                      label: const Text('Transferir'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-              Text(
-                'Últimos depósitos y retiros',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              Card(
-                child: Column(
-                  children: [
-                    for (var i = 0; i < vm.recentMovements.length; i++) ...[
-                      if (i > 0) const Divider(height: 1),
-                      _MovementTile(movement: vm.recentMovements[i]),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          );
+
+          if (acc == null) {
+            return _buildEmptyAccount(context);
+          }
+
+          return _buildContent(context, vm, acc);
         },
       ),
       bottomNavigationBar: const AppBottomNav(currentIndex: 1),
+    );
+  }
+
+  Widget _buildError(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.cloud_off_rounded, size: 64, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            'No se pudieron cargar los datos.',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyAccount(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              children: [
+                Icon(Icons.account_balance_outlined,
+                    size: 64, color: Colors.grey.shade400),
+                const SizedBox(height: 16),
+                Text(
+                  'No tienes cuentas registradas.',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppColors.textDark.withValues(alpha: 0.6),
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Las cuentas asociadas a tu perfil aparecerán aquí.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textDark.withValues(alpha: 0.4),
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent(
+      BuildContext context, AccountsViewModel vm, AccountModel acc) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  acc.accountType,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                _InfoRow(
+                  label: 'Número de cuenta',
+                  value: acc.accountNumber,
+                ),
+                const SizedBox(height: 8),
+                _InfoRow(label: 'CCI', value: vm.cci),
+                const Divider(height: 28),
+                _InfoRow(
+                  label: 'Saldo disponible',
+                  value:
+                      'S/ ${FormatUtils.formatSoles(vm.availableBalance)}',
+                  valueStyle:
+                      Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                ),
+                const SizedBox(height: 8),
+                _InfoRow(
+                  label: 'Saldo contable',
+                  value:
+                      'S/ ${FormatUtils.formatSoles(vm.accountingBalance)}',
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _showStatementSnackBar,
+                icon: const Icon(Icons.receipt_long_outlined),
+                label: const Text('Ver estado de cuenta'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.of(context)
+                    .pushNamed(AppRoutes.transfers),
+                icon: const Icon(Icons.swap_horiz_rounded),
+                label: const Text('Transferir'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 28),
+        Text(
+          'Últimos depósitos y retiros',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 12),
+        if (vm.recentMovements.isNotEmpty)
+          Card(
+            child: Column(
+              children: [
+                for (var i = 0; i < vm.recentMovements.length; i++) ...[
+                  if (i > 0) const Divider(height: 1),
+                  _MovementTile(movement: vm.recentMovements[i]),
+                ],
+              ],
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text(
+                'No tienes movimientos recientes.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textDark.withValues(alpha: 0.5),
+                    ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

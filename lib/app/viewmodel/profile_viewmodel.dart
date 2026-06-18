@@ -14,30 +14,51 @@ class ProfileViewModel extends ChangeNotifier {
     ProfileRepository? profileRepository,
   })  : _auth = authRepository ?? AuthRepository(),
         _profileRepository = profileRepository ?? ProfileRepository() {
-    profile = DemoClientData.profile;
-    unawaited(_loadFromSupabase());
+    _startLoading();
   }
 
   final AuthRepository _auth;
   final ProfileRepository _profileRepository;
 
-  late UserProfileModel profile;
-  bool isLoading = false;
+  UserProfileModel? profile;
+  bool isLoading = true;
   bool usingSupabaseData = false;
+  String? loadError;
+
+  void _startLoading() {
+    isLoading = true;
+    usingSupabaseData = false;
+    loadError = null;
+    unawaited(_loadFromSupabase());
+  }
 
   Future<void> _loadFromSupabase() async {
-    if (!_auth.isConfigured || _auth.currentUser == null) return;
+    debugPrint('[PROFILE] loading real profile');
 
-    isLoading = true;
-    notifyListeners();
+    if (!_auth.isConfigured || _auth.currentUser == null) {
+      debugPrint('[PROFILE] fallback demo reason=no_session');
+      profile = DemoClientData.profile;
+      isLoading = false;
+      notifyListeners();
+      return;
+    }
 
     try {
       final remote = await _profileRepository.getCurrentProfile();
+
       if (remote != null) {
         profile = remote;
         usingSupabaseData = true;
+        debugPrint('[PROFILE] loaded real profile');
+      } else {
+        debugPrint('[PROFILE] empty profile');
       }
+
+      loadError = null;
     } catch (e) {
+      debugPrint('[PROFILE] fallback demo reason=supabase_error');
+      profile = DemoClientData.profile;
+      loadError = 'No se pudo cargar tu perfil.';
       debugPrint('[ProfileViewModel] $e');
     }
 
@@ -45,11 +66,20 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> reload() async {
+    profile = null;
+    isLoading = true;
+    usingSupabaseData = false;
+    loadError = null;
+    notifyListeners();
+    await _loadFromSupabase();
+  }
+
   Future<void> logout() async {
     try {
       await _auth.signOut();
       await SessionTimeoutManager.clearActivity();
-      debugPrint('[AUTH] logout completed');
+      debugPrint('[PROFILE] logout completed');
     } catch (e) {
       debugPrint('[ProfileViewModel] signOut: $e');
     }

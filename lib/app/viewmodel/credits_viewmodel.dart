@@ -14,31 +14,39 @@ class CreditsViewModel extends ChangeNotifier {
     CreditsRepository? creditsRepository,
   })  : _auth = authRepository ?? AuthRepository(),
         _creditsRepository = creditsRepository ?? CreditsRepository() {
-    _loadDemoData();
-    unawaited(_loadFromSupabase());
+    _startLoading();
   }
 
   final AuthRepository _auth;
   final CreditsRepository _creditsRepository;
 
-  late CreditModel activeCredit;
-  late double monthlyInstallment;
-  late double teaPercent;
-  late double paymentProgress;
-  late List<PaymentScheduleModel> schedule;
+  CreditModel? activeCredit;
+  double monthlyInstallment = 0;
+  double teaPercent = 0;
+  double paymentProgress = 0;
+  List<PaymentScheduleModel> schedule = [];
 
+  bool isLoading = true;
   bool usingSupabaseData = false;
+  String? loadError;
 
-  void _loadDemoData() {
-    activeCredit = DemoClientData.activeCredit;
-    monthlyInstallment = DemoClientData.monthlyInstallment;
-    teaPercent = DemoClientData.teaPercent;
-    paymentProgress = DemoClientData.paymentProgress;
-    schedule = DemoClientData.creditSchedule;
+  void _startLoading() {
+    isLoading = true;
+    usingSupabaseData = false;
+    loadError = null;
+    unawaited(_loadFromSupabase());
   }
 
   Future<void> _loadFromSupabase() async {
-    if (!_auth.isConfigured || _auth.currentUser == null) return;
+    debugPrint('[CREDITS] loading real credit');
+
+    if (!_auth.isConfigured || _auth.currentUser == null) {
+      debugPrint('[CREDITS] fallback demo reason=no_session');
+      _applyDemoFallback();
+      isLoading = false;
+      notifyListeners();
+      return;
+    }
 
     try {
       final creditRow = await _creditsRepository.getActiveCreditRow();
@@ -46,11 +54,10 @@ class CreditsViewModel extends ChangeNotifier {
 
       if (credit != null) {
         activeCredit = credit;
-        monthlyInstallment =
-            credit.monthlyInstallment ?? DemoClientData.monthlyInstallment;
-        teaPercent = credit.teaPercent ?? DemoClientData.teaPercent;
-        paymentProgress =
-            credit.paymentProgress ?? DemoClientData.paymentProgress;
+        monthlyInstallment = credit.monthlyInstallment ?? 0;
+        teaPercent = credit.teaPercent ?? 0;
+        paymentProgress = credit.paymentProgress ?? 0;
+        debugPrint('[CREDITS] loaded real credit');
       }
 
       final creditoId = creditRow?['id']?.toString();
@@ -59,12 +66,27 @@ class CreditsViewModel extends ChangeNotifier {
 
       if (scheduleRows.isNotEmpty) {
         schedule = scheduleRows;
+        debugPrint('[CREDITS] loaded schedule=${scheduleRows.length}');
       }
 
       usingSupabaseData = true;
-      notifyListeners();
+      loadError = null;
     } catch (e) {
+      debugPrint('[CREDITS] fallback demo reason=supabase_error');
+      _applyDemoFallback();
+      loadError = 'No se pudieron cargar los datos.';
       debugPrint('[CreditsViewModel] $e');
     }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  void _applyDemoFallback() {
+    activeCredit = DemoClientData.activeCredit;
+    monthlyInstallment = DemoClientData.monthlyInstallment;
+    teaPercent = DemoClientData.teaPercent;
+    paymentProgress = DemoClientData.paymentProgress;
+    schedule = DemoClientData.creditSchedule;
   }
 }

@@ -22,8 +22,7 @@ class HomeViewModel extends ChangeNotifier {
         _profileRepository = profileRepository ?? ProfileRepository(),
         _accountsRepository = accountsRepository ?? AccountsRepository(),
         _creditsRepository = creditsRepository ?? CreditsRepository() {
-    _loadDemoData();
-    unawaited(_loadFromSupabase());
+    _startLoading();
   }
 
   final AuthRepository _auth;
@@ -31,27 +30,32 @@ class HomeViewModel extends ChangeNotifier {
   final AccountsRepository _accountsRepository;
   final CreditsRepository _creditsRepository;
 
-  late String clientName;
-  late AccountModel savingsAccount;
-  late CreditModel activeCredit;
-  late List<MovementModel> recentMovements;
+  String clientName = '';
+  AccountModel? savingsAccount;
+  CreditModel? activeCredit;
+  List<MovementModel> recentMovements = [];
 
-  bool isLoadingRemote = false;
+  bool isLoading = true;
   bool usingSupabaseData = false;
   String? loadError;
 
-  void _loadDemoData() {
-    clientName = DemoClientData.clientName;
-    savingsAccount = DemoClientData.savingsAccount;
-    activeCredit = DemoClientData.activeCredit;
-    recentMovements = DemoClientData.homeMovements;
+  void _startLoading() {
+    isLoading = true;
+    usingSupabaseData = false;
+    loadError = null;
+    unawaited(_loadFromSupabase());
   }
 
   Future<void> _loadFromSupabase() async {
-    if (!_auth.isConfigured || _auth.currentUser == null) return;
+    debugPrint('[HOME] loading real data');
 
-    isLoadingRemote = true;
-    notifyListeners();
+    if (!_auth.isConfigured || _auth.currentUser == null) {
+      debugPrint('[HOME] fallback demo reason=no_session');
+      _applyDemoFallback();
+      isLoading = false;
+      notifyListeners();
+      return;
+    }
 
     try {
       final profile = await _profileRepository.getCurrentProfile();
@@ -78,13 +82,35 @@ class HomeViewModel extends ChangeNotifier {
 
       usingSupabaseData = true;
       loadError = null;
+      debugPrint('[HOME] loaded real data');
     } catch (e) {
+      debugPrint('[HOME] fallback demo reason=supabase_error');
+      _applyDemoFallback();
       loadError = 'No se pudieron cargar los datos remotos.';
       debugPrint('[HomeViewModel] $e');
     }
 
-    isLoadingRemote = false;
+    isLoading = false;
     notifyListeners();
+  }
+
+  void _applyDemoFallback() {
+    clientName = DemoClientData.clientName;
+    savingsAccount = DemoClientData.savingsAccount;
+    activeCredit = DemoClientData.activeCredit;
+    recentMovements = DemoClientData.homeMovements;
+  }
+
+  Future<void> reload() async {
+    clientName = '';
+    savingsAccount = null;
+    activeCredit = null;
+    recentMovements = [];
+    isLoading = true;
+    usingSupabaseData = false;
+    loadError = null;
+    notifyListeners();
+    await _loadFromSupabase();
   }
 
   Future<void> logout() async {

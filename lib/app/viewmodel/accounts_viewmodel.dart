@@ -14,31 +14,39 @@ class AccountsViewModel extends ChangeNotifier {
     AccountsRepository? accountsRepository,
   })  : _auth = authRepository ?? AuthRepository(),
         _accountsRepository = accountsRepository ?? AccountsRepository() {
-    _loadDemoData();
-    unawaited(_loadFromSupabase());
+    _startLoading();
   }
 
   final AuthRepository _auth;
   final AccountsRepository _accountsRepository;
 
-  late AccountModel primaryAccount;
-  late String cci;
-  late double availableBalance;
-  late double accountingBalance;
-  late List<MovementModel> recentMovements;
+  AccountModel? primaryAccount;
+  String cci = '';
+  double availableBalance = 0;
+  double accountingBalance = 0;
+  List<MovementModel> recentMovements = [];
 
+  bool isLoading = true;
   bool usingSupabaseData = false;
+  String? loadError;
 
-  void _loadDemoData() {
-    primaryAccount = DemoClientData.savingsAccount;
-    cci = DemoClientData.cci;
-    availableBalance = DemoClientData.savingsAccount.balance;
-    accountingBalance = DemoClientData.savingsAccount.balance;
-    recentMovements = DemoClientData.accountMovements;
+  void _startLoading() {
+    isLoading = true;
+    usingSupabaseData = false;
+    loadError = null;
+    unawaited(_loadFromSupabase());
   }
 
   Future<void> _loadFromSupabase() async {
-    if (!_auth.isConfigured || _auth.currentUser == null) return;
+    debugPrint('[ACCOUNTS] loading real account');
+
+    if (!_auth.isConfigured || _auth.currentUser == null) {
+      debugPrint('[ACCOUNTS] fallback demo reason=no_session');
+      _applyDemoFallback();
+      isLoading = false;
+      notifyListeners();
+      return;
+    }
 
     try {
       final account = await _accountsRepository.getMainAccount();
@@ -46,23 +54,35 @@ class AccountsViewModel extends ChangeNotifier {
 
       if (account != null) {
         primaryAccount = account;
-        cci = account.cci?.isNotEmpty == true
-            ? account.cci!
-            : DemoClientData.cci;
-        availableBalance =
-            account.availableBalance ?? account.balance;
-        accountingBalance =
-            account.accountingBalance ?? account.balance;
+        cci = account.cci ?? '';
+        availableBalance = account.availableBalance ?? account.balance;
+        accountingBalance = account.accountingBalance ?? account.balance;
+        debugPrint('[ACCOUNTS] loaded real account');
       }
 
       if (movements.isNotEmpty) {
         recentMovements = movements;
+        debugPrint('[ACCOUNTS] loaded movements=${movements.length}');
       }
 
       usingSupabaseData = true;
-      notifyListeners();
+      loadError = null;
     } catch (e) {
+      debugPrint('[ACCOUNTS] fallback demo reason=supabase_error');
+      _applyDemoFallback();
+      loadError = 'No se pudieron cargar los datos.';
       debugPrint('[AccountsViewModel] $e');
     }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  void _applyDemoFallback() {
+    primaryAccount = DemoClientData.savingsAccount;
+    cci = DemoClientData.cci;
+    availableBalance = DemoClientData.savingsAccount.balance;
+    accountingBalance = DemoClientData.savingsAccount.balance;
+    recentMovements = DemoClientData.accountMovements;
   }
 }

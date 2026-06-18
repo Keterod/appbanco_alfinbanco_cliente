@@ -42,10 +42,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = _viewModel;
-    final acc = vm.savingsAccount;
-    final cr = vm.activeCredit;
-
     return Scaffold(
       appBar: AlfinAppBar(
         title: 'Inicio',
@@ -57,43 +53,94 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-        children: [
-          Text(
-            'Hola, ${vm.clientName}',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textDark,
-                ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Resumen de tus productos',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textDark.withValues(alpha: 0.65),
-                ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () =>
-                  Navigator.of(context).pushNamed(AppRoutes.transfers),
-              icon: const Icon(Icons.swap_horiz_rounded),
-              label: const Text('Transferencias y Pagos'),
+      body: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, _) {
+          final vm = _viewModel;
+
+          if (vm.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (vm.loadError != null && !vm.usingSupabaseData) {
+            return _buildError(context, vm);
+          }
+
+          return _buildContent(context, vm);
+        },
+      ),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 0),
+    );
+  }
+
+  Widget _buildError(BuildContext context, HomeViewModel vm) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cloud_off_rounded,
+                size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              vm.loadError ?? 'Error de conexión',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () => _viewModel.reload(),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, HomeViewModel vm) {
+    final acc = vm.savingsAccount;
+    final cr = vm.activeCredit;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+      children: [
+        Text(
+          'Hola, ${vm.clientName.isNotEmpty ? vm.clientName : "Cliente"}',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Resumen de tus productos',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textDark.withValues(alpha: 0.65),
+              ),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRoutes.transfers),
+            icon: const Icon(Icons.swap_horiz_rounded),
+            label: const Text('Transferencias y Pagos'),
           ),
-          const SizedBox(height: 16),
-          _BalanceCard(
-            title: 'Mis solicitudes',
-            subtitle: 'Revisa el estado de tus solicitudes de crédito',
-            amountLabel: '',
-            accent: AppColors.purpleSupport,
-            onTap: () =>
-                Navigator.of(context).pushNamed(AppRoutes.requests),
-          ),
-          const SizedBox(height: 24),
+        ),
+        const SizedBox(height: 16),
+        _BalanceCard(
+          title: 'Mis solicitudes',
+          subtitle: 'Revisa el estado de tus solicitudes de crédito',
+          amountLabel: '',
+          accent: AppColors.purpleSupport,
+          onTap: () => Navigator.of(context).pushNamed(AppRoutes.requests),
+        ),
+        const SizedBox(height: 24),
+        if (acc != null)
           _BalanceCard(
             title: acc.accountType,
             subtitle: acc.accountNumber,
@@ -101,8 +148,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             accent: AppColors.primary,
             onTap: () =>
                 Navigator.of(context).pushReplacementNamed(AppRoutes.accounts),
+          )
+        else
+          _EmptyCard(
+            title: 'Cuenta de ahorros',
+            message: 'No tienes cuentas registradas.',
+            accent: AppColors.primary,
+            onTap: () =>
+                Navigator.of(context).pushReplacementNamed(AppRoutes.accounts),
           ),
-          const SizedBox(height: 16),
+        const SizedBox(height: 16),
+        if (cr != null)
           _BalanceCard(
             title: cr.productName,
             subtitle:
@@ -112,16 +168,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
             accent: AppColors.secondary,
             onTap: () =>
                 Navigator.of(context).pushReplacementNamed(AppRoutes.credits),
+          )
+        else
+          _EmptyCard(
+            title: 'Crédito',
+            message: 'No tienes créditos activos.',
+            accent: AppColors.secondary,
+            onTap: () =>
+                Navigator.of(context).pushReplacementNamed(AppRoutes.credits),
           ),
-          const SizedBox(height: 28),
-          Text(
-            'Últimos movimientos',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-          ),
-          const SizedBox(height: 12),
+        const SizedBox(height: 28),
+        Text(
+          'Últimos movimientos',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textDark,
+              ),
+        ),
+        const SizedBox(height: 12),
+        if (vm.recentMovements.isNotEmpty)
           Card(
             child: Column(
               children: [
@@ -131,10 +196,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ],
             ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text(
+                'No tienes movimientos recientes.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textDark.withValues(alpha: 0.5),
+                    ),
+              ),
+            ),
           ),
-        ],
-      ),
-      bottomNavigationBar: const AppBottomNav(currentIndex: 0),
+      ],
     );
   }
 }
@@ -200,15 +275,89 @@ class _BalanceCard extends StatelessWidget {
                                   AppColors.textDark.withValues(alpha: 0.55),
                             ),
                       ),
-                      const SizedBox(height: 16),
+                      if (amountLabel.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          amountLabel,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: accent,
+                              ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyCard extends StatelessWidget {
+  const _EmptyCard({
+    required this.title,
+    required this.message,
+    required this.accent,
+    this.onTap,
+  });
+
+  final String title;
+  final String message;
+  final Color accent;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 5, color: accent.withValues(alpha: 0.3)),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textDark,
+                                  ),
+                            ),
+                          ),
+                          if (onTap != null)
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: accent.withValues(alpha: 0.4),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       Text(
-                        amountLabel,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: accent,
+                        message,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color:
+                                  AppColors.textDark.withValues(alpha: 0.4),
+                              fontStyle: FontStyle.italic,
                             ),
                       ),
                     ],
