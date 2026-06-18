@@ -10,6 +10,7 @@ import '../view/home/dashboard_screen.dart';
 import '../view/operations/operation_detail_screen.dart';
 import '../view/operations/operations_screen.dart';
 import '../view/profile/profile_screen.dart';
+import '../view/loan_request/client_loan_request_screen.dart';
 import '../view/requests/request_detail_screen.dart';
 import '../view/requests/requests_screen.dart';
 import '../view/splash/splash_screen.dart';
@@ -38,6 +39,7 @@ class AppNavigation extends StatelessWidget {
         AppRoutes.profile: (_) => const ProfileScreen(),
         AppRoutes.requests: (_) => const RequestsScreen(),
         AppRoutes.operations: (_) => const OperationsScreen(),
+        AppRoutes.clientLoanRequest: (_) => const ClientLoanRequestScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.transfers) {

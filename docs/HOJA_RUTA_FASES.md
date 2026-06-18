@@ -65,24 +65,41 @@
 - [x] CuentasScreen muestra lista de cuentas con badge "Principal"
 - [x] Documentación FASE_C4_4_TRANSFERENCIA_CUENTAS_PROPIAS.md
 
-## Fase C4.5 — Pago de servicio Luz (pendiente)
-- [ ] Selección de cuenta origen
-- [ ] Selección de servicio (Luz del Sur)
-- [ ] Ingreso de código de suministro
-- [ ] Consulta de monto a pagar
-- [ ] Confirmación y persistencia (débito sin crédito)
+## Fase C4.5 — Solicitud de Crédito Empresarial desde App Clientes ✅ (COMPLETADA)
+- [x] Formulario stepper: Negocio → Crédito → Confirmar
+- [x] Cálculo de TEA/TEM/cuota (amortización francesa)
+- [x] Pre-evaluación con score, riesgo, elegibilidad
+- [x] Generación de cronograma de pagos
+- [x] Puente de identidad auth.uid() → clientes.id
+- [x] Inserción en solicitudes_credito con estado "enviado"
+- [x] Generación de número de expediente
+- [x] Pantalla de éxito con enlace a Mis Solicitudes
+- [x] Documentación FASE_C4_5_SOLICITUD_CREDITO_CLIENTE.md
 
-## Fase C4.6 — Metas de ahorro (pendiente)
-- [ ] Definir modelo de meta de ahorro
-- [ ] CRUD de metas
-- [ ] Progreso visual
+## Fase C4.6 — Seguimiento de expediente / estados (pendiente)
+- [ ] Dashboard con resumen de estado actual de expedientes
+- [ ] Notificaciones de cambio de estado (simulado)
+- [ ] Detalle de respuesta del evaluador
 
-## Fase C4.7 — Depósito a cuenta propia (pendiente)
-- [ ] Depósito desde efectivo simulado
-- [ ] Validaciones
-- [ ] Persistencia (solo abono)
+## Fase C4.7 — Crédito desembolsado / crédito activo (pendiente)
+- [ ] Solicitud aprobada → reflejar como crédito activo en clientes_creditos
+- [ ] Opción de pago de cuota desde transferencias
 
 ## Fase C5 — Mejoras transversales (pendiente)
+- [ ] Pago de servicio Luz
+- [ ] Metas de ahorro
+- [ ] Depósito a cuenta propia
+- [ ] RPC transaccional en backend
+- [ ] Historial con paginación
+- [ ] Filtros por tipo y fecha
+- [ ] Descarga de comprobante PDF
+- [ ] SQLite para caché offline
+- [ ] Notificaciones
+- [ ] Edición de perfil
+- [ ] Secure storage en lugar de shared_preferences
+- [ ] Biometría (huella/face ID)
+- [ ] Tests unitarios y widget tests
+- [ ] Integración con Core/FastAPI
 - [ ] RPC transaccional en backend
 - [ ] Historial con paginación
 - [ ] Filtros por tipo y fecha

@@ -50,20 +50,31 @@
 - [x] Pantalla de éxito específica "Transferencia entre cuentas realizada"
 - [x] Refresco de saldos post-operación
 
-## Pendientes para fase siguiente (C4.5 — Pago de servicio Luz)
-- [ ] Selección de cuenta origen para pago de servicio
-- [ ] Consulta de monto a pagar por código de suministro
-- [ ] Confirmación y persistencia de pago de servicio
+## Implementados en Fase C4.5
+- [x] Formulario stepper: Negocio → Crédito → Confirmar
+- [x] Cálculo de TEA/TEM/cuota (amortización francesa)
+- [x] Pre-evaluación con score, riesgo, elegibilidad
+- [x] Generación de cronograma de pagos
+- [x] Puente de identidad auth.uid() → clientes.id
+- [x] Inserción en solicitudes_credito con estado "enviado"
+- [x] Generación de número de expediente
+- [x] Pantalla de éxito con enlace a Mis Solicitudes
 
-## Pendientes para fases posteriores (C4.6, C4.7, C5)
-- [ ] Metas de ahorro (C4.6)
-- [ ] Depósito a cuenta propia (C4.7)
-- [ ] RPC transaccional en backend (reemplazar 3 pasos del cliente)
+## Pendientes para fase siguiente (C4.6 — Seguimiento de expediente / estados)
+- [ ] Dashboard con resumen de estado actual de expedientes
+- [ ] Notificaciones de cambio de estado (simulado)
+- [ ] Detalle de respuesta del evaluador
+
+## Pendientes para fases posteriores (C4.7, C5)
+- [ ] Crédito desembolsado → reflejar como crédito activo en clientes_creditos
+- [ ] Opción de pago de cuota desde transferencias
+- [ ] Pago de servicio Luz
+- [ ] Metas de ahorro
+- [ ] Depósito a cuenta propia
+- [ ] RPC transaccional en backend (reemplazar pasos del cliente)
 - [ ] Historial con paginación
 - [ ] Filtros por tipo y fecha
 - [ ] Descarga de comprobante PDF
-- [ ] Reflejar solicitudes aprobadas → créditos activos
-- [ ] Pago de cuota real desde créditos desembolsados
 - [ ] SQLite / modo offline
 - [ ] Notificaciones
 - [ ] Edición de perfil

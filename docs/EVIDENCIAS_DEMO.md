@@ -188,6 +188,45 @@ Guía para capturas de pantalla y exposición oral. Orden recomendado para una p
 | **Qué mostrar** | Intentar transferir sin seleccionar origen → "Selecciona una cuenta origen."; sin destino → "Selecciona una cuenta destino."; mismo origen y destino → "La cuenta destino debe ser diferente."; monto mayor al saldo → "Saldo insuficiente para realizar la transferencia." |
 | **Qué explicar** | Validaciones en `validateForContinue()`; cada mensaje específico según el error |
 
+---
+
+## 10i. Solicitar crédito empresarial — paso 1: Datos del negocio
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Dashboard → tarjeta "Solicitar crédito empresarial" → formulario paso 1: tipo negocio (Comercio), nombre (Bodega Miguel), antigüedad (48), ingresos (2200), gastos (900) |
+| **Qué explicar** | Stepper de 3 pasos con indicador visual; validaciones en cada campo |
+
+## 10j. Solicitar crédito empresarial — paso 2: Datos del crédito
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Paso 2: monto (1000), plazo (12), destino, garantía (sin garantía), seguro (No) |
+| **Qué explicar** | Al avanzar, se ejecutan los cálculos: TEA 43.92%, TEM, cuota estimada ~S/ 100.95 |
+
+## 10k. Solicitar crédito empresarial — paso 3: Confirmar
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Preview completa: datos del negocio, datos del crédito, resultados (TEA, cuota, total, capacidad, ratio), badge de pre-evaluación APTO (verde) con score 85 y riesgo Bajo, botón "Enviar solicitud" |
+| **Qué explicar** | Pre-evaluación: ratio cuota/capacidad ~4.9% → APTO porque <= 40%; al enviar se genera expediente y se inserta en `solicitudes_credito` |
+
+## 10l. Solicitud enviada — éxito
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Pantalla de éxito: "Solicitud enviada correctamente", N° expediente EXP-ALF-2026-..., estado Enviado, botones "Ver Mis Solicitudes" y "Volver al inicio" |
+| **Qué explicar** | La solicitud nace con estado "enviado"; al tocar "Ver Mis Solicitudes" aparece arriba en la lista porque consulta la misma tabla |
+
+---
+
+## 10m. Validación de solicitud de crédito
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Intentar transferir sin seleccionar origen → "Selecciona una cuenta origen."; sin destino → "Selecciona una cuenta destino."; mismo origen y destino → "La cuenta destino debe ser diferente."; monto mayor al saldo → "Saldo insuficiente para realizar la transferencia." |
+| **Qué explicar** | Validaciones en `validateForContinue()`; cada mensaje específico según el error |
+
 ## 15. Cierre de sesión
 
 | Aspecto | Detalle |

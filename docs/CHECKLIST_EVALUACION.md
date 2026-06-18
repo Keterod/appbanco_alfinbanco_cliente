@@ -45,15 +45,22 @@
 | 37 | Saldo restante en resumen | ✅ Cumple | Transferencias — paso resumen | Muestra saldo restante aproximado de la cuenta origen |
 | 38 | Movimientos débito y abono para transferencia propia | ✅ Cumple | `clientes_movimientos` | "Transferencia enviada a cuenta..." y "Transferencia recibida desde cuenta..." |
 | 39 | Refresco de ambas cuentas post-transferencia | ✅ Cumple | Cuentas + Dashboard | Saldo origen baja, saldo destino sube, suma total se mantiene |
-| 40 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
-| 41 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
+| 40 | Solicitud de crédito empresarial desde App Clientes | ✅ Cumple | `ClientLoanRequestScreen` (`/loan-request`) | Formulario stepper, cálculo TEA/TEM/cuota, pre-evaluación |
+| 41 | Cálculo de cuota (amortización francesa) | ✅ Cumple | `ClientLoanRequestModel` | TEA→TEM→cuota según seguro de desgravamen |
+| 42 | Pre-evaluación con score y riesgo | ✅ Cumple | `ClientLoanRequestModel` | APTO/OBSERVADO/NO APTO según ratio capacidad |
+| 43 | Generación de cronograma de pagos | ✅ Cumple | `ClientLoanRequestModel` | N cuotas con capital, interés, saldo |
+| 44 | Inserción en solicitudes_credito con estado enviado | ✅ Cumple | `ClientLoanRequestRepository` | Puente DNI, expediente EXP-ALF-2026-... |
+| 45 | Solicitud visible en Mis Solicitudes | ✅ Cumple | `RequestsScreen` | Misma tabla `solicitudes_credito`, mismo `cliente_id` |
+| 46 | Acceso desde Dashboard | ✅ Cumple | Dashboard | Tarjeta "Solicitar crédito empresarial" |
+| 47 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
+| 48 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
 
 ## Resumen de cumplimiento
 
 | Métrica | Valor |
 |---------|-------|
-| Requisitos evaluados | 41 |
-| Cumplidos | 41 |
+| Requisitos evaluados | 48 |
+| Cumplidos | 48 |
 | Pendientes (esta entrega) | 0 |
 
 ## Fuera de alcance (fase backend)

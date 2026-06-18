@@ -43,6 +43,7 @@ android/ ios/ web/ ...                 # Plataformas Flutter (template)
 | Créditos | `credits_screen.dart` | `credits_viewmodel.dart` |
 | Mis Solicitudes | `requests_screen.dart`, `request_detail_screen.dart` | `requests_viewmodel.dart` |
 | Transferencias y pagos | `transfers_screen.dart` | `transfers_viewmodel.dart` |
+| Solicitar crédito empresarial | `client_loan_request_screen.dart` | `client_loan_request_viewmodel.dart` |
 | Historial de operaciones | `operations_screen.dart` | `operations_viewmodel.dart` |
 | Comprobante de operación | `operation_detail_screen.dart` | — (datos por argumento) |
 | Perfil | `profile_screen.dart` | `profile_viewmodel.dart` |
@@ -85,6 +86,7 @@ Model (clases Dart inmutables o simples)
 | `TransfersViewModel` | Formulario, validación, confirmación, éxito; soporta transferencia entre cuentas propias |
 | `ProfileViewModel` | Datos del cliente |
 | `OperationsViewModel` | Historial de operaciones con pull-to-refresh |
+| `ClientLoanRequestViewModel` | Formulario de solicitud de crédito empresarial, cálculos y envío |
 
 ## Rutas principales
 
@@ -99,6 +101,7 @@ Model (clases Dart inmutables o simples)
 | `/requests` | `AppRoutes.requests` | Mis Solicitudes |
 | `/requests/detail` | `AppRoutes.requestDetail` | Detalle individual (`onGenerateRoute`, arg `RequestModel`) |
 | `/transfers` | `AppRoutes.transfers` | Transferencias (`onGenerateRoute`, arg `pagoCredito`) |
+| `/loan-request` | `AppRoutes.clientLoanRequest` | Solicitar crédito empresarial |
 | `/operations` | `AppRoutes.operations` | Historial de operaciones |
 | `/operations/detail` | `AppRoutes.operationDetail` | Comprobante (`onGenerateRoute`, arg `OperationModel`) |
 | `/profile` | `AppRoutes.profile` | Perfil |
@@ -130,13 +133,13 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 - Operación → movimiento → saldo se ejecuta desde el cliente sin transacción atómica; en producción debe ser RPC.
 - Historial de operaciones sin paginación (carga completa).
 - Transferencia entre cuentas propias usa 2 lecturas + 2 escrituras separadas para débito/crédito; sin RPC hay riesgo de inconsistencia si falla un paso intermedio.
+- Solicitud de crédito empresarial inserta en `solicitudes_credito` con inserción completa (fallback a campos mínimos si alguna columna no existe).
 
 ## Próximos pasos recomendados
 
-1. **C4.5** — Pago de servicio Luz (selección de servicio, código de suministro, consulta de monto)
-2. **C4.6** — Metas de ahorro (CRUD de metas, progreso visual)
-3. **C4.7** — Depósito a cuenta propia (depósito simulado, solo abono)
-4. **C5** — RPC transaccional, paginación en historial, filtros, PDF comprobante, SQLite offline
+1. **C4.6** — Seguimiento de expediente / estados (dashboard de solicitudes, notificaciones de cambio de estado)
+2. **C4.7** — Crédito desembolsado → reflejar como crédito activo en `clientes_creditos`, pago de cuota
+3. **C5** — Pago de Luz, Metas de ahorro, Depósito, RPC transaccional, paginación, filtros, PDF, SQLite offline
 5. Introducir capa **`repository` + `services`** (HTTP o Supabase).
 6. **Provider** o **Riverpod** para sesión y ViewModels globales.
 7. **Secure storage** para token y preferencias.

@@ -133,6 +133,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 16),
         _BalanceCard(
+          title: 'Solicitar crédito empresarial',
+          subtitle: 'Registra tu solicitud y revisa el expediente',
+          amountLabel: '',
+          accent: AppColors.secondary,
+          onTap: () => Navigator.of(context)
+              .pushNamed(AppRoutes.clientLoanRequest),
+        ),
+        const SizedBox(height: 12),
+        _BalanceCard(
           title: 'Mis solicitudes',
           subtitle: 'Revisa el estado de tus solicitudes de crédito',
           amountLabel: '',
