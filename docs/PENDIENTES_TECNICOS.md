@@ -40,7 +40,24 @@
 - [x] Ruta `/operations` + `/operations/detail`
 - [x] Acceso desde Dashboard y Perfil
 
-## Pendientes para fase siguiente (C4.4)
+## Implementados en Fase C4.4
+- [x] Carga de todas las cuentas (`getAccounts()`)
+- [x] Dropdown cuenta origen con saldo disponible
+- [x] Dropdown cuenta destino excluyendo origen
+- [x] Validación origen ≠ destino
+- [x] Flujo TRANSFERENCIA_PROPIA: 1 operación + 2 movimientos + débito origen + crédito destino
+- [x] CuentasScreen con lista de cuentas y badge "Principal"
+- [x] Pantalla de éxito específica "Transferencia entre cuentas realizada"
+- [x] Refresco de saldos post-operación
+
+## Pendientes para fase siguiente (C4.5 — Pago de servicio Luz)
+- [ ] Selección de cuenta origen para pago de servicio
+- [ ] Consulta de monto a pagar por código de suministro
+- [ ] Confirmación y persistencia de pago de servicio
+
+## Pendientes para fases posteriores (C4.6, C4.7, C5)
+- [ ] Metas de ahorro (C4.6)
+- [ ] Depósito a cuenta propia (C4.7)
 - [ ] RPC transaccional en backend (reemplazar 3 pasos del cliente)
 - [ ] Historial con paginación
 - [ ] Filtros por tipo y fecha

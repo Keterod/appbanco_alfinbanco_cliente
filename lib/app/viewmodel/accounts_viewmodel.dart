@@ -20,6 +20,7 @@ class AccountsViewModel extends ChangeNotifier {
   final AuthRepository _auth;
   final AccountsRepository _accountsRepository;
 
+  List<AccountModel> accounts = [];
   AccountModel? primaryAccount;
   String cci = '';
   double availableBalance = 0;
@@ -49,15 +50,19 @@ class AccountsViewModel extends ChangeNotifier {
     }
 
     try {
-      final account = await _accountsRepository.getMainAccount();
+      final loadedAccounts = await _accountsRepository.getAccounts();
       final movements = await _accountsRepository.getMovements();
 
-      if (account != null) {
-        primaryAccount = account;
-        cci = account.cci ?? '';
-        availableBalance = account.availableBalance ?? account.balance;
-        accountingBalance = account.accountingBalance ?? account.balance;
-        debugPrint('[ACCOUNTS] loaded real account');
+      if (loadedAccounts.isNotEmpty) {
+        accounts = loadedAccounts;
+        primaryAccount = loadedAccounts.firstWhere(
+          (a) => a.isPrincipal,
+          orElse: () => loadedAccounts.first,
+        );
+        cci = primaryAccount!.cci ?? '';
+        availableBalance = primaryAccount!.availableBalance ?? primaryAccount!.balance;
+        accountingBalance = primaryAccount!.accountingBalance ?? primaryAccount!.balance;
+        debugPrint('[ACCOUNTS] loaded accounts=${loadedAccounts.length}');
       }
 
       if (movements.isNotEmpty) {
@@ -79,6 +84,7 @@ class AccountsViewModel extends ChangeNotifier {
   }
 
   void _applyDemoFallback() {
+    accounts = [DemoClientData.savingsAccount];
     primaryAccount = DemoClientData.savingsAccount;
     cci = DemoClientData.cci;
     availableBalance = DemoClientData.savingsAccount.balance;

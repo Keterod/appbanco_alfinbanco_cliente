@@ -54,17 +54,42 @@
 - [x] Acceso desde Dashboard y Perfil
 - [x] Documentación FASE_C4_3_HISTORIAL_OPERACIONES.md
 
-## Fase C4.4 — Mejoras de historial (pendiente)
+## Fase C4.4 — Transferencia entre cuentas propias ✅ (COMPLETADA)
+- [x] Carga de todas las cuentas propias desde `clientes_cuentas`
+- [x] Dropdown cuenta origen con saldo disponible
+- [x] Dropdown cuenta destino excluyendo origen
+- [x] Validación origen ≠ destino, saldo suficiente
+- [x] Flujo TRANSFERENCIA_PROPIA: débito origen + abono destino + 2 movimientos
+- [x] Pantalla de éxito "Transferencia entre cuentas realizada"
+- [x] Refresco de saldos en Cuentas y Dashboard post-operación
+- [x] CuentasScreen muestra lista de cuentas con badge "Principal"
+- [x] Documentación FASE_C4_4_TRANSFERENCIA_CUENTAS_PROPIAS.md
+
+## Fase C4.5 — Pago de servicio Luz (pendiente)
+- [ ] Selección de cuenta origen
+- [ ] Selección de servicio (Luz del Sur)
+- [ ] Ingreso de código de suministro
+- [ ] Consulta de monto a pagar
+- [ ] Confirmación y persistencia (débito sin crédito)
+
+## Fase C4.6 — Metas de ahorro (pendiente)
+- [ ] Definir modelo de meta de ahorro
+- [ ] CRUD de metas
+- [ ] Progreso visual
+
+## Fase C4.7 — Depósito a cuenta propia (pendiente)
+- [ ] Depósito desde efectivo simulado
+- [ ] Validaciones
+- [ ] Persistencia (solo abono)
+
+## Fase C5 — Mejoras transversales (pendiente)
 - [ ] RPC transaccional en backend
 - [ ] Historial con paginación
 - [ ] Filtros por tipo y fecha
 - [ ] Descarga de comprobante PDF
 - [ ] SQLite para caché offline
-
-## Fase C5 — Experiencia completa (pendiente)
 - [ ] Notificaciones
 - [ ] Edición de perfil
-- [ ] Todos los productos financieros (tarjetas, CTS, etc.)
 - [ ] Secure storage en lugar de shared_preferences
 - [ ] Biometría (huella/face ID)
 - [ ] Tests unitarios y widget tests

@@ -167,6 +167,27 @@ Guía para capturas de pantalla y exposición oral. Orden recomendado para una p
 
 ---
 
+## 10f. Transferencia entre cuentas propias
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Transferencias → seleccionar tipo "Transferencia" → dropdown origen (0011-0456-7890123456, S/ 10,000.00) → dropdown destino (0022-0789-1234567890) → monto S/ 100 → Continuar → Resumen con saldo restante S/ 9,900.00 → Confirmar → "Transferencia entre cuentas realizada" con N° operación, origen, destino, monto |
+| **Qué explicar** | Flujo completo: dropdowns con saldo disponible, validación origen≠destino, 5 pasos en Supabase (1 op + 2 mov + 2 actualizaciones saldo); al regresar a Cuentas se ven ambas cuentas actualizadas |
+
+## 10g. CuentasScreen con múltiples cuentas
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Pantalla Cuentas con 2 tarjetas: "Cuenta de ahorros" con badge "Principal" y "Cuenta sueldo" sin badge; cada una con número, CCI, saldo disponible, saldo contable; movimientos debajo |
+| **Qué explicar** | `getAccounts()` consulta todas las cuentas del cliente; badge "Principal" cuando `es_principal = true`; sección de movimientos se mantiene igual |
+
+## 10h. Validación de transferencia propia
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Intentar transferir sin seleccionar origen → "Selecciona una cuenta origen."; sin destino → "Selecciona una cuenta destino."; mismo origen y destino → "La cuenta destino debe ser diferente."; monto mayor al saldo → "Saldo insuficiente para realizar la transferencia." |
+| **Qué explicar** | Validaciones en `validateForContinue()`; cada mensaje específico según el error |
+
 ## 15. Cierre de sesión
 
 | Aspecto | Detalle |

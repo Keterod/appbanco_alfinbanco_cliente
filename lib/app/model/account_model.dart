@@ -8,6 +8,7 @@ class AccountModel {
     this.cci,
     this.availableBalance,
     this.accountingBalance,
+    this.isPrincipal = false,
   });
 
   final String accountNumber;
@@ -16,6 +17,7 @@ class AccountModel {
   final String? cci;
   final double? availableBalance;
   final double? accountingBalance;
+  final bool isPrincipal;
 
   factory AccountModel.fromSupabase(Map<String, dynamic> json) {
     final saldo = parseSupabaseDouble(json['saldo']);
@@ -35,6 +37,7 @@ class AccountModel {
       accountingBalance: json.containsKey('saldo_contable')
           ? parseSupabaseDouble(json['saldo_contable'])
           : saldo,
+      isPrincipal: json['es_principal'] == true,
     );
   }
 }

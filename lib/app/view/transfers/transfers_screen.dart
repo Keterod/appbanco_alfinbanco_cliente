@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/session/session_timeout_manager.dart';
+import '../../model/account_model.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
 import '../../util/format_utils.dart';
@@ -21,7 +22,6 @@ class TransfersScreen extends StatefulWidget {
 
 class _TransfersScreenState extends State<TransfersScreen> {
   late final TransfersViewModel _viewModel;
-  late final TextEditingController _originController;
   final _destinationController = TextEditingController();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -32,9 +32,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
     _viewModel = TransfersViewModel(
       initialOperationType: widget.initialOperationType,
     );
-    _originController = TextEditingController();
     _viewModel.init();
-    _originController.text = _viewModel.originAccount;
     _syncControllersFromViewModel();
     unawaited(SessionTimeoutManager.saveActivity());
   }
@@ -48,7 +46,6 @@ class _TransfersScreenState extends State<TransfersScreen> {
   @override
   void dispose() {
     _viewModel.dispose();
-    _originController.dispose();
     _destinationController.dispose();
     _amountController.dispose();
     _descriptionController.dispose();
@@ -121,30 +118,88 @@ class _TransfersScreenState extends State<TransfersScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextField(
-                  readOnly: true,
-                  controller: _originController,
-                  decoration: InputDecoration(
-                    labelText: 'Cuenta origen',
-                    prefixIcon: const Icon(Icons.account_balance_outlined),
-                    filled: true,
-                    fillColor: AppColors.backgroundLight,
+                if (vm.operationType == TransferOperationType.transferencia) ...[
+                  DropdownButtonFormField<AccountModel>(
+                    key: ValueKey(
+                        'origin_${vm.selectedOrigin?.accountNumber ?? ""}'),
+                    initialValue: vm.selectedOrigin,
+                    items: vm.userAccounts.map((acc) {
+                      final bal =
+                          acc.availableBalance ?? acc.balance;
+                      return DropdownMenuItem(
+                        value: acc,
+                        child: Text(
+                          '${acc.accountType} — ${acc.accountNumber}\nS/ ${FormatUtils.formatSoles(bal)}',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: vm.setSelectedOrigin,
+                    decoration: InputDecoration(
+                      labelText: 'Cuenta origen',
+                      prefixIcon:
+                          const Icon(Icons.account_balance_outlined),
+                      errorText: vm.originError,
+                    ),
+                    isExpanded: true,
                   ),
-                ),
+                ] else ...[
+                  TextField(
+                    readOnly: true,
+                    controller: TextEditingController(
+                      text: vm.originAccount,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: 'Cuenta origen',
+                      prefixIcon:
+                          const Icon(Icons.account_balance_outlined),
+                      filled: true,
+                      fillColor: AppColors.backgroundLight,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
-                TextField(
-                  controller: _destinationController,
-                  onChanged: vm.setDestination,
-                  readOnly: vm.operationType != TransferOperationType.transferencia,
-                  decoration: InputDecoration(
-                    labelText: vm.operationType ==
-                            TransferOperationType.transferencia
-                        ? 'Cuenta destino'
-                        : 'Destino / referencia',
-                    prefixIcon: const Icon(Icons.account_circle_outlined),
-                    errorText: vm.destinationError,
+                if (vm.operationType == TransferOperationType.transferencia) ...[
+                  DropdownButtonFormField<AccountModel>(
+                    key: ValueKey(
+                        'dest_${vm.selectedOrigin?.accountNumber ?? ""}_${vm.selectedDestination?.accountNumber ?? ""}'),
+                    initialValue: vm.selectedDestination,
+                    items: vm.userAccounts
+                        .where((acc) =>
+                            acc.accountNumber !=
+                            vm.selectedOrigin?.accountNumber)
+                        .map((acc) {
+                      return DropdownMenuItem(
+                        value: acc,
+                        child: Text(
+                          '${acc.accountType} — ${acc.accountNumber}',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: vm.setSelectedDestination,
+                    decoration: InputDecoration(
+                      labelText: 'Cuenta destino',
+                      prefixIcon:
+                          const Icon(Icons.account_circle_outlined),
+                      errorText: vm.destinationError,
+                    ),
+                    isExpanded: true,
                   ),
-                ),
+                ] else ...[
+                  TextField(
+                    controller: _destinationController,
+                    onChanged: vm.setDestination,
+                    readOnly: vm.operationType !=
+                        TransferOperationType.transferencia,
+                    decoration: InputDecoration(
+                      labelText: 'Destino / referencia',
+                      prefixIcon:
+                          const Icon(Icons.account_circle_outlined),
+                      errorText: vm.destinationError,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 TextField(
                   controller: _amountController,
@@ -207,8 +262,11 @@ class _TransfersScreenState extends State<TransfersScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _SummaryRow(label: 'Tipo', value: vm.operationTypeLabel),
-                _SummaryRow(label: 'Origen', value: vm.originAccount),
-                _SummaryRow(label: 'Destino', value: vm.destinationAccount),
+                _SummaryRow(
+                    label: 'Origen', value: vm.displayOriginAccount),
+                _SummaryRow(
+                    label: 'Destino',
+                    value: vm.displayDestinationAccount),
                 _SummaryRow(
                   label: 'Monto',
                   value: 'S/ ${FormatUtils.formatSoles(amount)}',
@@ -220,6 +278,15 @@ class _TransfersScreenState extends State<TransfersScreen> {
                       ? '—'
                       : vm.description.trim(),
                 ),
+                if (vm.operationType ==
+                    TransferOperationType.transferencia) ...[
+                  const Divider(height: 24),
+                  _SummaryRow(
+                    label: 'Saldo restante aprox.',
+                    value:
+                        'S/ ${FormatUtils.formatSoles(vm.approximateRemainingBalance)}',
+                  ),
+                ],
               ],
             ),
           ),
@@ -252,6 +319,8 @@ class _TransfersScreenState extends State<TransfersScreen> {
 
   Widget _buildSuccess(BuildContext context) {
     final transfer = _viewModel.completedTransfer!;
+    final isOwnTransfer =
+        _viewModel.operationTypeLabel == 'TRANSFERENCIA_PROPIA';
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -268,7 +337,9 @@ class _TransfersScreenState extends State<TransfersScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Operación exitosa',
+                  isOwnTransfer
+                      ? 'Transferencia entre cuentas realizada'
+                      : 'Operación exitosa',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.purpleSupport,
@@ -298,7 +369,12 @@ class _TransfersScreenState extends State<TransfersScreen> {
                 ),
                 _SummaryRow(label: 'Tipo', value: _viewModel.operationTypeLabel),
                 _SummaryRow(label: 'Estado', value: transfer.status),
-                _SummaryRow(label: 'Destino', value: transfer.destinationAccount),
+                _SummaryRow(
+                    label: 'Cuenta origen',
+                    value: _viewModel.displayOriginAccount),
+                _SummaryRow(
+                    label: 'Cuenta destino',
+                    value: _viewModel.displayDestinationAccount),
               ],
             ),
           ),

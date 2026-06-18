@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/supabase/supabase_client.dart';
@@ -92,6 +93,25 @@ class AccountsRepository {
     });
   }
 
+  Future<List<AccountModel>> getAccounts() async {
+    if (!_auth.isConfigured || _userId == null) return [];
+
+    debugPrint('[ACCOUNTS] loading user accounts');
+    final client = _client ?? supabase;
+    final rows = await client
+        .from('clientes_cuentas')
+        .select()
+        .eq('cliente_id', _userId!)
+        .order('es_principal', ascending: false)
+        .order('numero_cuenta', ascending: true);
+
+    final list = List<Map<String, dynamic>>.from(rows as List);
+    debugPrint('[ACCOUNTS] accounts found=${list.length}');
+    return list
+        .map((r) => AccountModel.fromSupabase(r))
+        .toList();
+  }
+
   Future<void> updateBalance(double newBalance) async {
     if (!_auth.isConfigured || _userId == null) {
       throw StateError('Supabase no está disponible.');
@@ -107,5 +127,75 @@ class AccountsRepository {
         })
         .eq('cliente_id', _userId!)
         .eq('es_principal', true);
+  }
+
+  Future<void> debitAccount({
+    required String accountNumber,
+    required double amount,
+  }) async {
+    if (!_auth.isConfigured || _userId == null) {
+      throw StateError('Supabase no está disponible.');
+    }
+
+    final client = _client ?? supabase;
+    final rows = await client
+        .from('clientes_cuentas')
+        .select('saldo, saldo_disponible, saldo_contable')
+        .eq('cliente_id', _userId!)
+        .eq('numero_cuenta', accountNumber)
+        .limit(1);
+
+    final list = List<Map<String, dynamic>>.from(rows as List);
+    if (list.isEmpty) throw StateError('Cuenta no encontrada.');
+
+    final current = list.first;
+    final saldo = (current['saldo'] as num?)?.toDouble() ?? 0;
+    final disponible = (current['saldo_disponible'] as num?)?.toDouble() ?? saldo;
+    final contable = (current['saldo_contable'] as num?)?.toDouble() ?? saldo;
+
+    await client
+        .from('clientes_cuentas')
+        .update({
+          'saldo': saldo - amount,
+          'saldo_disponible': disponible - amount,
+          'saldo_contable': contable - amount,
+        })
+        .eq('cliente_id', _userId!)
+        .eq('numero_cuenta', accountNumber);
+  }
+
+  Future<void> creditAccount({
+    required String accountNumber,
+    required double amount,
+  }) async {
+    if (!_auth.isConfigured || _userId == null) {
+      throw StateError('Supabase no está disponible.');
+    }
+
+    final client = _client ?? supabase;
+    final rows = await client
+        .from('clientes_cuentas')
+        .select('saldo, saldo_disponible, saldo_contable')
+        .eq('cliente_id', _userId!)
+        .eq('numero_cuenta', accountNumber)
+        .limit(1);
+
+    final list = List<Map<String, dynamic>>.from(rows as List);
+    if (list.isEmpty) throw StateError('Cuenta no encontrada.');
+
+    final current = list.first;
+    final saldo = (current['saldo'] as num?)?.toDouble() ?? 0;
+    final disponible = (current['saldo_disponible'] as num?)?.toDouble() ?? saldo;
+    final contable = (current['saldo_contable'] as num?)?.toDouble() ?? saldo;
+
+    await client
+        .from('clientes_cuentas')
+        .update({
+          'saldo': saldo + amount,
+          'saldo_disponible': disponible + amount,
+          'saldo_contable': contable + amount,
+        })
+        .eq('cliente_id', _userId!)
+        .eq('numero_cuenta', accountNumber);
   }
 }

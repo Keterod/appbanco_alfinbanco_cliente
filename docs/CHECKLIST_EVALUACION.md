@@ -39,15 +39,21 @@
 | 31 | Navegación funcional | ✅ Cumple | Bottom nav + rutas nombradas | Inicio, Cuentas, Créditos, Perfil, Operaciones; links entre módulos |
 | 32 | Arquitectura MVVM | ✅ Cumple | `lib/app/model`, `viewmodel`, `view` | `ChangeNotifier` + `ListenableBuilder` |
 | 33 | Datos desde Supabase | ✅ Cumple | Repositorios | Cuentas, movimientos, créditos, perfil, solicitudes, operaciones desde Supabase |
-| 34 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
-| 35 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
+| 34 | Carga de todas las cuentas propias | ✅ Cumple | `AccountsScreen` + `TransfersScreen` | Lista de cuentas con badge "Principal", dropdowns para transferencia |
+| 35 | Transferencia entre cuentas propias | ✅ Cumple | `TransfersScreen` + `TransfersViewModel` | Dropdown origen/destino, validación origen≠destino, débito+crédito |
+| 36 | Validación origen y destino | ✅ Cumple | Transferencias — formulario | "Selecciona una cuenta origen", "Selecciona una cuenta destino", "La cuenta destino debe ser diferente" |
+| 37 | Saldo restante en resumen | ✅ Cumple | Transferencias — paso resumen | Muestra saldo restante aproximado de la cuenta origen |
+| 38 | Movimientos débito y abono para transferencia propia | ✅ Cumple | `clientes_movimientos` | "Transferencia enviada a cuenta..." y "Transferencia recibida desde cuenta..." |
+| 39 | Refresco de ambas cuentas post-transferencia | ✅ Cumple | Cuentas + Dashboard | Saldo origen baja, saldo destino sube, suma total se mantiene |
+| 40 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
+| 41 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
 
 ## Resumen de cumplimiento
 
 | Métrica | Valor |
 |---------|-------|
-| Requisitos evaluados | 35 |
-| Cumplidos | 35 |
+| Requisitos evaluados | 41 |
+| Cumplidos | 41 |
 | Pendientes (esta entrega) | 0 |
 
 ## Fuera de alcance (fase backend)

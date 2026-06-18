@@ -80,10 +80,11 @@ Model (clases Dart inmutables o simples)
 | `AuthViewModel` | Login simulado, credenciales de ejemplo |
 | `RegisterViewModel` | Validación y registro mock |
 | `HomeViewModel` | Resumen dashboard |
-| `AccountsViewModel` | Detalle cuenta y movimientos |
+| `AccountsViewModel` | Lista de cuentas, movimientos |
 | `CreditsViewModel` | Crédito, cronograma, progreso |
-| `TransfersViewModel` | Formulario, validación, confirmación, éxito |
+| `TransfersViewModel` | Formulario, validación, confirmación, éxito; soporta transferencia entre cuentas propias |
 | `ProfileViewModel` | Datos del cliente |
+| `OperationsViewModel` | Historial de operaciones con pull-to-refresh |
 
 ## Rutas principales
 
@@ -121,7 +122,6 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 
 - No hay autenticación ni registro en servidor (demo mode como respaldo).
 - ViewModels no se comparten entre pantallas (datos duplicados en mocks).
-- Un solo crédito y una sola cuenta en los datos demo.
 - iOS/Web/desktop no priorizados frente a Android para la demo.
 - Sin tests automatizados en el repositorio.
 - Sin modo offline real: sin internet no se puede iniciar sesión.
@@ -129,13 +129,17 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 - "Contactar asesor" es simulado (AlertDialog), no hay envío real de notificación.
 - Operación → movimiento → saldo se ejecuta desde el cliente sin transacción atómica; en producción debe ser RPC.
 - Historial de operaciones sin paginación (carga completa).
+- Transferencia entre cuentas propias usa 2 lecturas + 2 escrituras separadas para débito/crédito; sin RPC hay riesgo de inconsistencia si falla un paso intermedio.
 
 ## Próximos pasos recomendados
 
-1. Introducir capa **`repository` + `services`** (HTTP o Supabase).
-2. **Provider** o **Riverpod** para sesión y ViewModels globales.
-3. **Secure storage** para token y preferencias.
-4. Tests **unit** (ViewModels) y **widget** (flujos críticos).
-5. Flujos de error de red y estados vacíos.
-6. Firma release y `applicationId` definitivo (`com.alfinbanco.cliente` o similar).
-7. Integración con notificaciones y biometría según requerimientos del banco.
+1. **C4.5** — Pago de servicio Luz (selección de servicio, código de suministro, consulta de monto)
+2. **C4.6** — Metas de ahorro (CRUD de metas, progreso visual)
+3. **C4.7** — Depósito a cuenta propia (depósito simulado, solo abono)
+4. **C5** — RPC transaccional, paginación en historial, filtros, PDF comprobante, SQLite offline
+5. Introducir capa **`repository` + `services`** (HTTP o Supabase).
+6. **Provider** o **Riverpod** para sesión y ViewModels globales.
+7. **Secure storage** para token y preferencias.
+8. Tests **unit** (ViewModels) y **widget** (flujos críticos).
+9. Firma release y `applicationId` definitivo (`com.alfinbanco.cliente` o similar).
+10. Integración con notificaciones y biometría según requerimientos del banco.

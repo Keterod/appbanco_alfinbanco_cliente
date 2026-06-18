@@ -61,13 +61,11 @@ class _AccountsScreenState extends State<AccountsScreen> {
             return _buildError(context);
           }
 
-          final acc = vm.primaryAccount;
-
-          if (acc == null) {
+          if (vm.accounts.isEmpty) {
             return _buildEmptyAccount(context);
           }
 
-          return _buildContent(context, vm, acc);
+          return _buildContent(context, vm);
         },
       ),
       bottomNavigationBar: const AppBottomNav(currentIndex: 1),
@@ -124,51 +122,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
   }
 
-  Widget _buildContent(
-      BuildContext context, AccountsViewModel vm, AccountModel acc) {
+  Widget _buildContent(BuildContext context, AccountsViewModel vm) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  acc.accountType,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                _InfoRow(
-                  label: 'Número de cuenta',
-                  value: acc.accountNumber,
-                ),
-                const SizedBox(height: 8),
-                _InfoRow(label: 'CCI', value: vm.cci),
-                const Divider(height: 28),
-                _InfoRow(
-                  label: 'Saldo disponible',
-                  value:
-                      'S/ ${FormatUtils.formatSoles(vm.availableBalance)}',
-                  valueStyle:
-                      Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                ),
-                const SizedBox(height: 8),
-                _InfoRow(
-                  label: 'Saldo contable',
-                  value:
-                      'S/ ${FormatUtils.formatSoles(vm.accountingBalance)}',
-                ),
-              ],
-            ),
-          ),
-        ),
+        for (var i = 0; i < vm.accounts.length; i++) ...[
+          if (i > 0) const SizedBox(height: 16),
+          _AccountCard(account: vm.accounts[i]),
+        ],
         const SizedBox(height: 20),
         Row(
           children: [
@@ -222,6 +183,79 @@ class _AccountsScreenState extends State<AccountsScreen> {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _AccountCard extends StatelessWidget {
+  const _AccountCard({required this.account});
+
+  final AccountModel account;
+
+  @override
+  Widget build(BuildContext context) {
+    final bal = account.availableBalance ?? account.balance;
+    final contable = account.accountingBalance ?? account.balance;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    account.accountType,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+                if (account.isPrincipal)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Principal',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondary,
+                          ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _InfoRow(
+              label: 'Número de cuenta',
+              value: account.accountNumber,
+            ),
+            const SizedBox(height: 8),
+            _InfoRow(label: 'CCI', value: account.cci ?? '—'),
+            const Divider(height: 28),
+            _InfoRow(
+              label: 'Saldo disponible',
+              value: 'S/ ${FormatUtils.formatSoles(bal)}',
+              valueStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            _InfoRow(
+              label: 'Saldo contable',
+              value: 'S/ ${FormatUtils.formatSoles(contable)}',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
