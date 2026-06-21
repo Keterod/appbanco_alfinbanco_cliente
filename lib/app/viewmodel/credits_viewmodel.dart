@@ -67,7 +67,8 @@ class CreditsViewModel extends ChangeNotifier {
         activeCredit = credit;
         monthlyInstallment = credit.monthlyInstallment ?? 0;
         teaPercent = credit.teaPercent ?? 0;
-        paymentProgress = credit.paymentProgress ?? 0;
+        final rawProgress = credit.paymentProgress ?? 0;
+        paymentProgress = rawProgress > 1 ? rawProgress / 100 : rawProgress;
         debugPrint('[CREDITS] loaded real credit');
       }
 
@@ -99,5 +100,18 @@ class CreditsViewModel extends ChangeNotifier {
     teaPercent = DemoClientData.teaPercent;
     paymentProgress = DemoClientData.paymentProgress;
     schedule = DemoClientData.creditSchedule;
+  }
+
+  Future<void> reload() async {
+    activeCredit = null;
+    monthlyInstallment = 0;
+    teaPercent = 0;
+    paymentProgress = 0;
+    schedule = [];
+    isLoading = true;
+    usingSupabaseData = false;
+    loadError = null;
+    notifyListeners();
+    await _loadFromSupabase();
   }
 }

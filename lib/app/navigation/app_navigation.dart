@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../model/credit_model.dart';
 import '../model/operation_model.dart';
 import '../model/request_model.dart';
 import '../view/accounts/accounts_screen.dart';
 import '../view/auth/login_screen.dart';
 import '../view/auth/register_screen.dart';
+import '../view/credits/credit_payment_screen.dart';
 import '../view/credits/credits_screen.dart';
 import '../view/home/dashboard_screen.dart';
 import '../view/operations/operation_detail_screen.dart';
@@ -63,6 +65,13 @@ class AppNavigation extends StatelessWidget {
           final operation = settings.arguments as OperationModel;
           return MaterialPageRoute<void>(
             builder: (_) => OperationDetailScreen(operation: operation),
+            settings: settings,
+          );
+        }
+        if (settings.name == AppRoutes.creditPayment) {
+          final credit = settings.arguments as CreditModel;
+          return MaterialPageRoute<void>(
+            builder: (_) => CreditPaymentScreen(credit: credit),
             settings: settings,
           );
         }

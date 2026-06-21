@@ -85,9 +85,29 @@
 - [x] Soporte para nuevos campos (monto_aprobado, motivo_rechazo, fecha_decision, etc.)
 - [x] Documentación FASE_C4_6_SEGUIMIENTO_EXPEDIENTE.md
 
-## Fase C4.7 — Crédito desembolsado / crédito activo (pendiente)
-- [ ] Solicitud aprobada → reflejar como crédito activo en clientes_creditos
-- [ ] Opción de pago de cuota desde transferencias
+## Fase C4.7 — Crédito desembolsado → crédito activo ✅ (COMPLETADA)
+- [x] `DisbursementRepository` refleja solicitudes desembolsadas como créditos activos
+- [x] Inserta cronograma, acredita cuenta, registra movimiento y operación
+- [x] `CreditsViewModel` llama a reflejar antes de cargar créditos
+- [x] `RequestDetailScreen` muestra "Crédito desembolsado" con enlace a Mis créditos
+
+## Fase C4.8 — Pago de cuota del crédito ✅ (COMPLETADA)
+- [x] `CreditPaymentRepository` con flujo completo sobre schema real de `clientes_cronograma_pagos`
+- [x] Flujo reordenado: update cuota → update crédito → débito → movimiento → operación
+- [x] Validación de estado actual de la cuota (re-query antes de pagar)
+- [x] Solo columnas reales: `estado='pagado'`, `fecha_pago=now()` en cronograma
+- [x] `CreditPaymentViewModel` carga siguiente cuota pendiente, selecciona cuenta, valida saldo, confirma
+- [x] `CreditPaymentScreen` con formulario, dropdown cuentas, confirmación AlertDialog, pantalla de éxito
+- [x] Botón "Pagar cuota" en Créditos navega a nueva pantalla (condicional si hay cuotas pendientes)
+- [x] Reload de créditos al regresar post-pago
+- [x] Cancelación cuando todas las cuotas están pagadas
+- [x] `monto_pendiente` se reduce por `installment.amount` (no hay columna `capital`)
+- [x] Documentación FASE_C4_8_PAGO_CUOTA_CREDITO.md
+
+## Fase C4.9 — Funcionalidades extra (pendiente)
+- [ ] Pago de Luz
+- [ ] Metas de ahorro
+- [ ] Depósito a cuenta propia
 
 ## Fase C5 — Mejoras transversales (pendiente)
 - [ ] Pago de servicio Luz

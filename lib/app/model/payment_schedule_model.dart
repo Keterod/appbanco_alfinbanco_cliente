@@ -9,6 +9,11 @@ class PaymentScheduleModel {
     required this.amount,
     required this.status,
     this.paidDate,
+    this.id,
+    this.creditoId,
+    this.capital,
+    this.interes,
+    this.saldo,
   });
 
   final int installmentNumber;
@@ -16,6 +21,11 @@ class PaymentScheduleModel {
   final double amount;
   final PaymentInstallmentStatus status;
   final DateTime? paidDate;
+  final String? id;
+  final String? creditoId;
+  final double? capital;
+  final double? interes;
+  final double? saldo;
 
   String get statusLabel {
     switch (status) {
@@ -35,15 +45,30 @@ class PaymentScheduleModel {
       amount: parseSupabaseDouble(json['monto']),
       status: _statusFromString(parseSupabaseString(json['estado'])),
       paidDate: parseSupabaseDate(json['fecha_pago']),
+      id: json.containsKey('id') ? parseSupabaseString(json['id']) : null,
+      creditoId: json.containsKey('credito_id')
+          ? parseSupabaseString(json['credito_id'])
+          : null,
+      capital: json.containsKey('capital')
+          ? parseSupabaseDouble(json['capital'])
+          : null,
+      interes: json.containsKey('interes')
+          ? parseSupabaseDouble(json['interes'])
+          : null,
+      saldo: json.containsKey('saldo')
+          ? parseSupabaseDouble(json['saldo'])
+          : null,
     );
   }
 
   static PaymentInstallmentStatus _statusFromString(String value) {
-    final normalized = value.toLowerCase();
-    if (normalized.contains('pag')) {
+    final normalized = value.trim().toLowerCase();
+    if (normalized == 'pagado' || normalized.contains('pag')) {
       return PaymentInstallmentStatus.paid;
     }
-    if (normalized.contains('venc') || normalized.contains('overdue')) {
+    if (normalized == 'vencido' ||
+        normalized.contains('venc') ||
+        normalized.contains('overdue')) {
       return PaymentInstallmentStatus.overdue;
     }
     return PaymentInstallmentStatus.pending;

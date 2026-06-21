@@ -241,6 +241,43 @@ Guía para capturas de pantalla y exposición oral. Orden recomendado para una p
 | **Qué mostrar** | Cada tarjeta en Mis Solicitudes muestra: expediente, monto · plazo, badge de estado, descripción corta "Tu solicitud fue registrada correctamente...", "Paso 1 de 5", fecha de última actualización |
 | **Qué explicar** | Subtítulo usa `statusDescription` del modelo; paso se calcula con `statusStepIndex`; `updatedAt` muestra última modificación si existe |
 
+## 10q. Pago de cuota — Formulario y confirmación
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Créditos → tocar "Pagar cuota" → card crédito (nombre, monto pendiente, cuota mensual) → card "Siguiente cuota" (# cuota, fecha, cuota, capital, interés, saldo posterior) → dropdown cuentas origen con saldo → "Confirmar pago" → AlertDialog confirmación (crédito, cuota, cuenta origen, monto) → pantalla éxito con "Pago registrado correctamente", N° operación, fecha, cuota, monto, botones "Ver créditos" y "Ver operaciones" |
+| **Qué explicar** | Flujo completo: selecciona la siguiente cuota pendiente del cronograma, elige cuenta origen con saldo suficiente, confirma; se debita la cuenta, inserta movimiento y operación PAGO_CUOTA_CREDITO, marca cuota Pagado, reduce monto pendiente del crédito; si era la última cuota, el crédito pasa a CANCELADO |
+
+## 10r. Crédito actualizado post-pago
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Volver a Créditos después del pago → cuota aparece "Pagado", monto pendiente reducido, progreso actualizado; si era la última cuota → botón "Pagar cuota" desaparece, muestra "Crédito al día" |
+| **Qué explicar** | El ViewModel recarga datos al regresar; la cuota se lee desde Supabase con estado Pagado; el crédito refleja el nuevo monto pendiente y progreso |
+
+## 10s. Saldo actualizado post-pago de cuota
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Ir a Cuentas → saldo de la cuenta origen reducido por el monto de la cuota pagada; movimiento "Pago de cuota X del crédito Y" visible; ir a Mis operaciones → operación con tipo PAGO_CUOTA_CREDITO visible |
+| **Qué explicar** | El débito, movimiento y operación se insertan en Supabase de forma secuencial; los ViewModels cargan los datos frescos al navegar |
+
+## 10t. Validación de saldo insuficiente en pago de cuota
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Seleccionar cuenta origen con saldo menor a la cuota → intentar pagar → error "Saldo insuficiente para pagar la cuota." en card roja |
+| **Qué explicar** | Validación desde el saldo disponible real de la cuenta; se compara con el monto total de la cuota antes de ejecutar el débito |
+
+## 10u. Validación de cuota ya pagada (re-query)
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Pagar una cuota → volver a intentar pagar la misma cuota (simulado recargando) → error "La cuota ya fue pagada." |
+| **Qué explicar** | Antes de ejecutar el pago, el repositorio vuelve a consultar la cuota por `id` para verificar que siga en estado `'pendiente'`. Si otro proceso o intento previo ya la pagó, se rechaza con mensaje claro |
+
+---
+
 ## 10p. Dashboard — Estado de tus expedientes
 
 | Aspecto | Detalle |

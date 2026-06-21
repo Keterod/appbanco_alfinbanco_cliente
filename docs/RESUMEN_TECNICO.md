@@ -41,6 +41,7 @@ android/ ios/ web/ ...                 # Plataformas Flutter (template)
 | Inicio | `dashboard_screen.dart` | `home_viewmodel.dart` |
 | Cuentas / Ahorros | `accounts_screen.dart` | `accounts_viewmodel.dart` |
 | Créditos | `credits_screen.dart` | `credits_viewmodel.dart` |
+| Pago de cuota | `credit_payment_screen.dart` | `credit_payment_viewmodel.dart` |
 | Mis Solicitudes | `requests_screen.dart`, `request_detail_screen.dart` | `requests_viewmodel.dart` |
 | Transferencias y pagos | `transfers_screen.dart` | `transfers_viewmodel.dart` |
 | Solicitar crédito empresarial | `client_loan_request_screen.dart` | `client_loan_request_viewmodel.dart` |
@@ -87,6 +88,8 @@ Model (clases Dart inmutables o simples)
 | `ProfileViewModel` | Datos del cliente |
 | `OperationsViewModel` | Historial de operaciones con pull-to-refresh |
 | `ClientLoanRequestViewModel` | Formulario de solicitud de crédito empresarial, cálculos y envío |
+| `CreditsViewModel` (reload) | Recarga créditos post-pago |
+| `CreditPaymentViewModel` | Selección de cuenta, validación, confirmación de pago de cuota |
 
 ## Rutas principales
 
@@ -104,6 +107,7 @@ Model (clases Dart inmutables o simples)
 | `/loan-request` | `AppRoutes.clientLoanRequest` | Solicitar crédito empresarial |
 | `/operations` | `AppRoutes.operations` | Historial de operaciones |
 | `/operations/detail` | `AppRoutes.operationDetail` | Comprobante (`onGenerateRoute`, arg `OperationModel`) |
+| `/credits/payment` | `AppRoutes.creditPayment` | Pago de cuota (`onGenerateRoute`, arg `CreditModel`) |
 | `/profile` | `AppRoutes.profile` | Perfil |
 
 Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
@@ -131,6 +135,11 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 - La sesión temporal solo usa shared_preferences, no secure storage.
 - "Contactar asesor" es simulado (AlertDialog), no hay envío real de notificación.
 - Operación → movimiento → saldo se ejecuta desde el cliente sin transacción atómica; en producción debe ser RPC.
+- Pago de cuota: orden de ejecución con rollback (snapshot → débito → movimiento → operación → cuota → crédito).
+- Schema real `clientes_cronograma_pagos` usa `monto`, `fecha_vencimiento`, `fecha_pago`, `estado` (minúscula). No tiene `capital`, `interes`, `saldo`, `fecha_pago_real`, `numero_operacion`.
+- Schema real `clientes_creditos` usa `progreso_pago` (0.0–1.0), `monto_original`, `monto_pendiente`, `estado`, `activo`, `proxima_fecha_pago`. No tiene `progreso`, `cuotas_pagadas`, `total_cuotas`.
+- El monto pendiente del crédito se reduce por el monto total de la cuota («installment.amount»), no por capital (columna no disponible).
+- `CreditsViewModel` normaliza `progreso_pago`: si > 1 lo divide entre 100.
 - Historial de operaciones sin paginación (carga completa).
 - Transferencia entre cuentas propias usa 2 lecturas + 2 escrituras separadas para débito/crédito; sin RPC hay riesgo de inconsistencia si falla un paso intermedio.
 - Solicitud de crédito empresarial inserta en `solicitudes_credito` con inserción completa (fallback a campos mínimos si alguna columna no existe).
@@ -138,8 +147,8 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 
 ## Próximos pasos recomendados
 
-1. **C4.7** — Crédito desembolsado → reflejar como crédito activo en `clientes_creditos`, pago de cuota
-2. **C5** — Pago de Luz, Metas de ahorro, Depósito, RPC transaccional, paginación, filtros, PDF, SQLite offline
+1. **C4.9** — Pago de Luz, Metas de ahorro, Depósito a cuenta propia
+2. **C5** — RPC transaccional, paginación, filtros, PDF, SQLite offline
 5. Introducir capa **`repository` + `services`** (HTTP o Supabase).
 6. **Provider** o **Riverpod** para sesión y ViewModels globales.
 7. **Secure storage** para token y preferencias.

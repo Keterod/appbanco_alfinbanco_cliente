@@ -12,4 +12,5 @@ abstract final class AppRoutes {
   static const String operations = '/operations';
   static const String operationDetail = '/operations/detail';
   static const String clientLoanRequest = '/loan-request';
+  static const String creditPayment = '/credits/payment';
 }

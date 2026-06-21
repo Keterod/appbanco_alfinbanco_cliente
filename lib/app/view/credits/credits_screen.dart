@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/session/session_timeout_manager.dart';
+import '../../model/credit_model.dart';
 import '../../model/payment_schedule_model.dart';
 import '../../navigation/app_routes.dart';
 import '../../ui/theme/app_colors.dart';
 import '../../util/format_utils.dart';
-import '../../model/credit_model.dart';
 import '../../viewmodel/credits_viewmodel.dart';
 import '../widgets/alfin_app_bar.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -35,11 +35,12 @@ class _CreditsScreenState extends State<CreditsScreen> {
     super.dispose();
   }
 
-  void _payInstallment() {
-    Navigator.of(context).pushNamed(
-      AppRoutes.transfers,
-      arguments: 'pagoCredito',
+  Future<void> _payInstallment() async {
+    await Navigator.of(context).pushNamed(
+      AppRoutes.creditPayment,
+      arguments: _viewModel.activeCredit,
     );
+    unawaited(_viewModel.reload());
   }
 
   Color _statusColor(PaymentInstallmentStatus status) {
@@ -199,14 +200,42 @@ class _CreditsScreenState extends State<CreditsScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _payInstallment,
-            icon: const Icon(Icons.payments_outlined),
-            label: const Text('Pagar cuota'),
+        if (vm.schedule.any(
+            (s) => s.status == PaymentInstallmentStatus.pending)) ...[
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _payInstallment,
+              icon: const Icon(Icons.payments_outlined),
+              label: const Text('Pagar cuota'),
+            ),
           ),
-        ),
+        ] else ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.green.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle_outline,
+                    size: 20, color: Colors.green.shade700),
+                const SizedBox(width: 8),
+                Text(
+                  vm.schedule.isEmpty
+                      ? 'Sin cuotas pendientes'
+                      : 'Crédito al día',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 28),
         Text(
           'Cronograma de pagos',

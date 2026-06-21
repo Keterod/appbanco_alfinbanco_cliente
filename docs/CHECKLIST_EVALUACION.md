@@ -57,16 +57,29 @@
 | 49 | Indicador paso en lista de solicitudes | ✅ Cumple | `RequestsScreen` | "Paso X de 5" en cada tarjeta |
 | 50 | Sección "Estado de tus expedientes" en Dashboard | ✅ Cumple | Dashboard | Último expediente + conteos (evaluación, aprobados, rechazados) |
 | 51 | Badge de actualización | ✅ Cumple | `RequestDetailScreen` | "Tu expediente tiene una actualización" si updated_at > created_at |
-| 52 | Soporte para campos extendidos | ✅ Cumple | `RequestModel` | monto_aprobado, motivo_rechazo, fecha_decision, etc. |
-| 53 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
-| 54 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
+| 53 | Soporte para campos extendidos | ✅ Cumple | `RequestModel` | monto_aprobado, motivo_rechazo, fecha_decision, etc. |
+| 54 | `flutter analyze` sin issues | ✅ Cumple | Terminal / CI local | 0 issues |
+| 55 | APK debug generado | ✅ Cumple | `build/app/outputs/flutter-apk/app-debug.apk` | `flutter build apk --debug` |
+| 56 | Crédito desembolsado reflejado como activo | ✅ Cumple | `DisbursementRepository` | `reflectDisbursedRequests()` antes de cargar créditos |
+| 57 | "Crédito desembolsado" en detalle de solicitud | ✅ Cumple | `RequestDetailScreen` | Card con enlace "Ver en Mis créditos" |
+| 58 | Pago de cuota desde pantalla Créditos | ✅ Cumple | `CreditPaymentScreen` | Dropdown cuenta origen, siguiente cuota, confirmación |
+| 59 | Validación saldo insuficiente en pago de cuota | ✅ Cumple | `CreditPaymentRepository` | Error "Saldo insuficiente para pagar la cuota." |
+| 60 | Validación de estado actual (re-query) | ✅ Cumple | `CreditPaymentRepository` | Vuelve a consultar la cuota antes de pagar |
+| 61 | Actualización de cronograma post-pago | ✅ Cumple | `clientes_cronograma_pagos` | estado='pagado' (minúscula), fecha_pago=now() |
+| 62 | Flujo reordenado con rollback | ✅ Cumple | `CreditPaymentRepository` | Snapshot → débito → movimiento → operación → cuota → crédito |
+| 63 | Rollback automático en fallo | ✅ Cumple | `CreditPaymentRepository` | Restaura saldo, elimina movimiento/operación, restaura cuota y crédito |
+| 64 | Solo columnas reales en clientes_creditos | ✅ Cumple | Schema créditos | Usa `progreso_pago`, no `progreso`; no usa `cuotas_pagadas`/`total_cuotas` |
+| 65 | Normalización de progreso_pago | ✅ Cumple | `CreditsViewModel` | Divide entre 100 si valor > 1 |
+| 66 | Actualización de proxima_fecha_pago | ✅ Cumple | `CreditPaymentRepository` | Consulta siguiente cuota pendiente y actualiza fecha |
+| 67 | Cancelación de crédito al pagar todas las cuotas | ✅ Cumple | `CreditPaymentRepository` | estado=CANCELADO, activo=false |
+| 68 | Reload de créditos al regresar de pago | ✅ Cumple | `CreditsViewModel.reload()` | Recarga completa post-pago |
 
 ## Resumen de cumplimiento
 
 | Métrica | Valor |
 |---------|-------|
-| Requisitos evaluados | 54 |
-| Cumplidos | 54 |
+| Requisitos evaluados | 68 |
+| Cumplidos | 68 |
 | Pendientes (esta entrega) | 0 |
 
 ## Fuera de alcance (fase backend)
