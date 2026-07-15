@@ -87,7 +87,7 @@ Model (clases Dart inmutables o simples)
 | `TransfersViewModel` | Formulario, validación, confirmación, éxito; soporta transferencia entre cuentas propias |
 | `ProfileViewModel` | Datos del cliente |
 | `OperationsViewModel` | Historial de operaciones con pull-to-refresh |
-| `ClientLoanRequestViewModel` | Formulario de solicitud de crédito empresarial, cálculos y envío |
+| `ClientLoanRequestViewModel` | Formulario de solicitud de crédito empresarial, cálculos, envío, autocarga datos del usuario logueado |
 | `CreditsViewModel` (reload) | Recarga créditos post-pago |
 | `CreditPaymentViewModel` | Selección de cuenta, validación, confirmación de pago de cuota |
 
@@ -142,7 +142,7 @@ Navegación entre tabs: `AppBottomNav` con `pushReplacementNamed`.
 - `CreditsViewModel` normaliza `progreso_pago`: si > 1 lo divide entre 100.
 - Historial de operaciones sin paginación (carga completa).
 - Transferencia entre cuentas propias usa 2 lecturas + 2 escrituras separadas para débito/crédito; sin RPC hay riesgo de inconsistencia si falla un paso intermedio.
-- Solicitud de crédito empresarial inserta en `solicitudes_credito` con inserción completa (fallback a campos mínimos si alguna columna no existe).
+- Solicitud de crédito empresarial inserta en `solicitudes_credito` con un solo insert completo. Si falla, el error es visible para el usuario (no hay fallback silencioso).
 - Timeline de expediente usa índice de paso calculado del estado; no requiere cambios de backend.
 
 ## Próximos pasos recomendados

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../data/demo_client_data.dart';
 import '../model/account_model.dart';
 import '../model/movement_model.dart';
 import '../repository/accounts_repository.dart';
@@ -42,8 +41,7 @@ class AccountsViewModel extends ChangeNotifier {
     debugPrint('[ACCOUNTS] loading real account');
 
     if (!_auth.isConfigured || _auth.currentUser == null) {
-      debugPrint('[ACCOUNTS] fallback demo reason=no_session');
-      _applyDemoFallback();
+      debugPrint('[ACCOUNTS] no session');
       isLoading = false;
       notifyListeners();
       return;
@@ -73,22 +71,11 @@ class AccountsViewModel extends ChangeNotifier {
       usingSupabaseData = true;
       loadError = null;
     } catch (e) {
-      debugPrint('[ACCOUNTS] fallback demo reason=supabase_error');
-      _applyDemoFallback();
+      debugPrint('[ACCOUNTS] error=$e');
       loadError = 'No se pudieron cargar los datos.';
-      debugPrint('[AccountsViewModel] $e');
     }
 
     isLoading = false;
     notifyListeners();
-  }
-
-  void _applyDemoFallback() {
-    accounts = [DemoClientData.savingsAccount];
-    primaryAccount = DemoClientData.savingsAccount;
-    cci = DemoClientData.cci;
-    availableBalance = DemoClientData.savingsAccount.balance;
-    accountingBalance = DemoClientData.savingsAccount.balance;
-    recentMovements = DemoClientData.accountMovements;
   }
 }

@@ -109,13 +109,28 @@ class AuthRepository {
     }
 
     try {
-      debugPrint('DEBUG SIGNUP: llamando RPC crear_data_demo_cliente');
-      await client.rpc('crear_data_demo_cliente', params: {
-        'user_id': user.id,
+      debugPrint('DEBUG SIGNUP: creando cuenta de ahorros');
+      final now = DateTime.now();
+      final numeroCuenta =
+          '0011-${now.millisecondsSinceEpoch.toString().padLeft(12, '0').substring(0, 12)}';
+      final cci =
+          '002-011${now.millisecondsSinceEpoch.toString().padLeft(12, '0').substring(0, 12)}-56';
+      await client.from('clientes_cuentas').insert({
+        'cliente_id': user.id,
+        'numero_cuenta': numeroCuenta,
+        'cci': cci,
+        'tipo_cuenta': 'Cuenta de Ahorros',
+        'saldo': 0,
+        'saldo_disponible': 0,
+        'saldo_contable': 0,
+        'moneda': 'PEN',
+        'activa': true,
+        'es_principal': true,
+        'created_at': now.toIso8601String(),
       });
-      debugPrint('DEBUG SIGNUP: RPC completada correctamente');
+      debugPrint('DEBUG SIGNUP: cuenta creada correctamente');
     } catch (e, stackTrace) {
-      _debugPrintError(e, 'RPC crear_data_demo_cliente');
+      _debugPrintError(e, 'insert clientes_cuentas');
       debugPrint('DEBUG SIGNUP: stackTrace=$stackTrace');
       rethrow;
     }
@@ -139,27 +154,5 @@ class AuthRepository {
     final client = _safeClient;
     if (client == null) return;
     await client.auth.signOut();
-  }
-
-  Future<void> createDemoDataForCurrentUser() async {
-    final userId = currentUser?.id;
-    if (userId == null) return;
-    await createDemoDataForUser(userId);
-  }
-
-  Future<void> createDemoDataForUser(String userId) async {
-    final client = _safeClient;
-    if (client == null) return;
-
-    try {
-      debugPrint('DEBUG SIGNUP: llamando RPC crear_data_demo_cliente');
-      await client.rpc('crear_data_demo_cliente', params: {
-        'user_id': userId,
-      });
-    } catch (e, stackTrace) {
-      _debugPrintError(e, 'RPC crear_data_demo_cliente');
-      debugPrint('DEBUG SIGNUP: stackTrace=$stackTrace');
-      rethrow;
-    }
   }
 }

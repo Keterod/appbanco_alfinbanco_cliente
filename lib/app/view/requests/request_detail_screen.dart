@@ -203,6 +203,41 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
               const SizedBox(height: 16),
               _buildApprovedCard(context, req),
             ],
+            if (req.solicitanteNombre != null ||
+                req.solicitanteDocumento != null ||
+                req.solicitanteTelefono != null) ...[
+              const SizedBox(height: 16),
+              _SectionCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Datos del solicitante',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 12),
+                    if (req.solicitanteNombre != null)
+                      _MetricRow(
+                        label: 'Nombre',
+                        value: req.solicitanteNombre!,
+                      ),
+                    if (req.solicitanteDocumento != null)
+                      _MetricRow(
+                        label: 'Documento',
+                        value: req.solicitanteDocumento!,
+                      ),
+                    if (req.solicitanteTelefono != null)
+                      _MetricRow(
+                        label: 'Teléfono',
+                        value: req.solicitanteTelefono!,
+                      ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             _SectionCard(
               child: Column(
@@ -298,6 +333,58 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         value:
                             '${(req.ratioCapacidadPago! * 100).toStringAsFixed(1)} %',
                       ),
+                    if (req.estadoBuro != null)
+                      const SizedBox(height: 10),
+                    if (req.estadoBuro != null)
+                      _MetricRow(
+                        label: 'Estado buró',
+                        value: req.estadoBuro!,
+                      ),
+                    if (req.entidadesDeuda != null)
+                      const SizedBox(height: 10),
+                    if (req.entidadesDeuda != null)
+                      _MetricRow(
+                        label: 'Entidades deuda',
+                        value: '${req.entidadesDeuda}',
+                      ),
+                    if (req.deudaTotal != null)
+                      const SizedBox(height: 10),
+                    if (req.deudaTotal != null)
+                      _MetricRow(
+                        label: 'Deuda total',
+                        value: 'S/ ${FormatUtils.formatSoles(req.deudaTotal!)}',
+                      ),
+                    if (req.diasMayorMora != null)
+                      const SizedBox(height: 10),
+                    if (req.diasMayorMora != null)
+                      _MetricRow(
+                        label: 'Días mayor mora',
+                        value: '${req.diasMayorMora}',
+                      ),
+                    if (req.enListaInhabilitados != null)
+                      const SizedBox(height: 10),
+                    if (req.enListaInhabilitados != null)
+                      _MetricRow(
+                        label: 'Lista inhabilitados',
+                        value: req.enListaInhabilitados! ? 'Sí' : 'No',
+                      ),
+                    if (req.motivoPreEvaluacion != null)
+                      const SizedBox(height: 10),
+                    if (req.motivoPreEvaluacion != null) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Motivo: ${req.motivoPreEvaluacion!}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -695,6 +782,69 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
   }
 
   Widget _buildApprovedCard(BuildContext context, RequestModel req) {
+    if (req.isConditioned) {
+      return _SectionCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.swap_horiz_rounded, color: Colors.orange.shade700),
+                const SizedBox(width: 8),
+                Text(
+                  'Aprobado con condiciones',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Aprobado con condiciones',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  if (req.montoAprobado != null) ...[
+                    Text(
+                      'Monto solicitado: S/ ${FormatUtils.formatSoles(req.montoSolicitado)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    Text(
+                      'Monto aprobado: S/ ${FormatUtils.formatSoles(req.montoAprobado!)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  Text(
+                    'El comité aprobó el crédito con ajustes en el monto o condiciones. Pendiente de desembolso.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textDark.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return _SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

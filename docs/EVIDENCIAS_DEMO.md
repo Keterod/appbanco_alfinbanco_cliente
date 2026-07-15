@@ -1,5 +1,8 @@
 # Evidencias sugeridas — Demo App Cliente (Alfin Banco)
 
+> **Schema actualizado (C4.9):** Se verificaron las 34 columnas de `solicitudes_credito` en Supabase.
+> El fallback silencioso fue eliminado: ahora la solicitud se guarda completa o falla con error visible.
+
 Guía para capturas de pantalla y exposición oral. Orden recomendado para una presentación de 8–12 minutos.
 
 ---
@@ -195,7 +198,14 @@ Guía para capturas de pantalla y exposición oral. Orden recomendado para una p
 | Aspecto | Detalle |
 |---------|---------|
 | **Qué mostrar** | Dashboard → tarjeta "Solicitar crédito empresarial" → formulario paso 1: tipo negocio (Comercio), nombre (Bodega Miguel), antigüedad (48), ingresos (2200), gastos (900) |
-| **Qué explicar** | Stepper de 3 pasos con indicador visual; validaciones en cada campo |
+| **Qué explicar** | Stepper de 3 pasos con indicador visual; validaciones en cada campo; al abrir el formulario, los datos del usuario logueado (nombre, DNI, teléfono) se cargan automáticamente desde `clientes_perfil` |
+
+## 10i-bis. Autocarga de datos del solicitante
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Qué mostrar** | Al abrir Solicitar crédito empresarial: nombre, DNI y teléfono ya aparecen llenos con los datos de Miguel. Burbuja azul informativa: "Datos del usuario cargados. Puede editarlos para probar otro caso." Botón "Restaurar mis datos" visible |
+| **Qué explicar** | La app consulta `clientes_perfil` con `auth.uid()`; los campos son editables para probar otros DNI; el botón restaurar vuelve a cargar los datos originales |
 
 ## 10j. Solicitar crédito empresarial — paso 2: Datos del crédito
 

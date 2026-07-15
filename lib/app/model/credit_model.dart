@@ -41,7 +41,7 @@ class CreditModel {
       id: parseSupabaseString(json['id']),
       productName: parseSupabaseString(
         json['nombre_producto'] ?? json['producto'] ?? json['nombreProducto'],
-        'Préstamo',
+        'Crédito Empresarial Alfin',
       ),
       pendingAmount: parseSupabaseDouble(
         json['monto_pendiente'] ?? json['montoPendiente'],

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/supabase/supabase_client.dart';
@@ -17,30 +18,26 @@ class CreditsRepository {
 
   String? get _userId => _auth.currentUser?.id;
 
-  Future<CreditModel?> getActiveCredit() async {
-    if (!_auth.isConfigured || _userId == null) return null;
+  Future<List<CreditModel>> getCredits() async {
+    if (!_auth.isConfigured || _userId == null) return [];
 
+    final userId = _userId!;
     final client = _client ?? supabase;
+
+    debugPrint('DEBUG CLIENTES CREDITOS: userId=$userId');
+
     final rows = await client
         .from('clientes_creditos')
         .select()
-        .eq('cliente_id', _userId!)
-        .eq('activo', true)
-        .limit(1);
+        .eq('cliente_id', userId)
+        .order('created_at', ascending: false);
 
     final list = List<Map<String, dynamic>>.from(rows as List);
-    if (list.isEmpty) {
-      final fallback = await client
-          .from('clientes_creditos')
-          .select()
-          .eq('cliente_id', _userId!)
-          .limit(1);
-      final fbList = List<Map<String, dynamic>>.from(fallback as List);
-      if (fbList.isEmpty) return null;
-      return CreditModel.fromSupabase(fbList.first);
-    }
+    debugPrint('DEBUG CLIENTES CREDITOS: count=${list.length}');
+    debugPrint(
+        'DEBUG CLIENTES CREDITOS: first=${list.isNotEmpty ? list.first : null}');
 
-    return CreditModel.fromSupabase(list.first);
+    return list.map((r) => CreditModel.fromSupabase(r)).toList();
   }
 
   Future<List<PaymentScheduleModel>> getPaymentSchedule({
@@ -63,21 +60,5 @@ class CreditsRepository {
     return list
         .map((r) => PaymentScheduleModel.fromSupabase(r))
         .toList();
-  }
-
-  Future<Map<String, dynamic>?> getActiveCreditRow() async {
-    if (!_auth.isConfigured || _userId == null) return null;
-
-    final client = _client ?? supabase;
-    final rows = await client
-        .from('clientes_creditos')
-        .select()
-        .eq('cliente_id', _userId!)
-        .eq('activo', true)
-        .limit(1);
-
-    final list = List<Map<String, dynamic>>.from(rows as List);
-    if (list.isEmpty) return null;
-    return list.first;
   }
 }

@@ -51,13 +51,13 @@ class PaymentScheduleModel {
           : null,
       capital: json.containsKey('capital')
           ? parseSupabaseDouble(json['capital'])
-          : null,
+          : 0,
       interes: json.containsKey('interes')
           ? parseSupabaseDouble(json['interes'])
-          : null,
+          : 0,
       saldo: json.containsKey('saldo')
           ? parseSupabaseDouble(json['saldo'])
-          : null,
+          : 0,
     );
   }
 

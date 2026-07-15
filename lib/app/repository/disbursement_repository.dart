@@ -26,7 +26,6 @@ class DisbursementRepository {
 
     final client = _client ?? supabase;
 
-    // 1. Bridge: auth.uid() → clientes_perfil.dni → clientes.id
     final perfilRow = await client
         .from('clientes_perfil')
         .select('dni')
@@ -62,14 +61,28 @@ class DisbursementRepository {
     }
     debugPrint('[DISBURSEMENT] cliente_id=$clienteId userId=$userId');
 
-    // 2. Query disbursed requests
-    final rows = await client
-        .from('solicitudes_credito')
-        .select()
-        .eq('cliente_id', clienteId)
-        .eq('estado', 'desembolsado');
+    // Query by cliente_id OR created_by_auth_id
+    List<Map<String, dynamic>> requests;
+    try {
+      final rows = await client
+          .from('solicitudes_credito')
+          .select()
+          .or(
+            'cliente_id.eq.$clienteId,'
+            'created_by_auth_id.eq.$userId',
+          )
+          .eq('estado', 'desembolsado');
+      requests = List<Map<String, dynamic>>.from(rows as List);
+    } catch (_) {
+      debugPrint('[DISBURSEMENT] OR query failed, using fallback');
+      final rows = await client
+          .from('solicitudes_credito')
+          .select()
+          .eq('cliente_id', clienteId)
+          .eq('estado', 'desembolsado');
+      requests = List<Map<String, dynamic>>.from(rows as List);
+    }
 
-    final requests = List<Map<String, dynamic>>.from(rows as List);
     debugPrint('[DISBURSEMENT] found=${requests.length}');
 
     for (final req in requests) {
@@ -87,7 +100,14 @@ class DisbursementRepository {
 
     debugPrint('[DISBURSEMENT] processing expediente=$expediente');
 
-    // 3. Check for duplicates
+    // Skip rechazado (should not happen since we query desembolsado)
+    final estado = (req['estado']?.toString() ?? '').toLowerCase().trim();
+    if (estado == 'rechazado') {
+      debugPrint('[DISBURSEMENT] skipping rejected request');
+      return;
+    }
+
+    // Check duplicates
     final existingBySolicitudId = solicitudId.isNotEmpty
         ? await client
             .from('clientes_creditos')
@@ -98,7 +118,7 @@ class DisbursementRepository {
         : null;
 
     if (existingBySolicitudId != null) {
-      debugPrint('[DISBURSEMENT] already reflected (solicitud_id) expediente=$expediente');
+      debugPrint('[DISBURSEMENT] already reflected (solicitud_id)');
       return;
     }
 
@@ -111,20 +131,19 @@ class DisbursementRepository {
           .maybeSingle();
 
       if (existingByExpediente != null) {
-        debugPrint('[DISBURSEMENT] already reflected (expediente) expediente=$expediente');
+        debugPrint('[DISBURSEMENT] already reflected (expediente)');
         return;
       }
     }
 
     debugPrint('[DISBURSEMENT] reflecting expediente=$expediente');
 
-    final montoAprobado = (req['monto_aprobado'] as num?)?.toDouble() ??
+    // Use monto_aprobado for condicionado, fallback to monto_solicitado
+    final montoOriginal =
         (req['monto_solicitado'] as num?)?.toDouble() ?? 0;
+    final montoAprobado = (req['monto_aprobado'] as num?)?.toDouble() ??
+        montoOriginal;
     final plazoSolicitado = (req['plazo_meses'] as num?)?.toInt() ?? 12;
-    final cuotaEstimada =
-        (req['cuota_estimada'] as num?)?.toDouble() ?? 0;
-    final teaReferencial =
-        (req['tea_referencial'] as num?)?.toDouble() ?? 43.92;
     final fechaDesembolsoStr = req['fecha_desembolso']?.toString();
     final fechaDesembolso = fechaDesembolsoStr != null
         ? DateTime.tryParse(fechaDesembolsoStr) ?? DateTime.now()
@@ -133,16 +152,23 @@ class DisbursementRepository {
     final now = DateTime.now();
     final numeroCredito = 'CRE-${now.millisecondsSinceEpoch}';
 
-    // 4. Insert into clientes_creditos
+    // Calculate cuota for monto_aprobado (recalculates for condicionado)
+    final hasInsurance = req['seguro_desgravamen']?.toString() == 'Sí';
+    final tea = hasInsurance ? 40.92 : 43.92;
+    final tem = pow(1 + tea / 100, 1 / 12) - 1;
+    final denom = 1 - pow(1 + tem, -plazoSolicitado);
+    final cuotaMensual =
+        denom != 0 ? montoAprobado * tem / denom : 0;
+
     final creditData = <String, dynamic>{
       'cliente_id': userId,
       'nombre_producto': 'Crédito Empresarial — Microempresa',
       'numero_credito': numeroCredito,
       'monto_original': montoAprobado,
       'monto_pendiente': montoAprobado,
-      'cuota_mensual': cuotaEstimada,
-      'tea': teaReferencial,
-      'progreso': 0,
+      'cuota_mensual': cuotaMensual,
+      'tea': tea,
+      'progreso_pago': 0,
       'activo': true,
       'estado': 'ACTIVO',
       'fecha_desembolso': fechaDesembolso.toIso8601String(),
@@ -168,9 +194,9 @@ class DisbursementRepository {
           'numero_credito': numeroCredito,
           'monto_original': montoAprobado,
           'monto_pendiente': montoAprobado,
-          'cuota_mensual': cuotaEstimada,
-          'tea': teaReferencial,
-          'progreso': 0,
+          'cuota_mensual': cuotaMensual,
+          'tea': tea,
+          'progreso_pago': 0,
           'activo': true,
         };
         final inserted = await client
@@ -192,7 +218,7 @@ class DisbursementRepository {
 
     final creditoId = creditRow['id']?.toString() ?? '';
 
-    // 5. Insert schedule rows into clientes_cronograma_pagos
+    // Insert schedule rows
     final cronogramaRaw = req['cronograma_json'];
     List<Map<String, dynamic>> scheduleRows = [];
 
@@ -211,21 +237,30 @@ class DisbursementRepository {
         cronogramaList = [];
       }
 
-      for (final cuota in cronogramaList) {
-        final c = cuota as Map<String, dynamic>;
-        scheduleRows.add({
-          'cliente_id': userId,
-          'credito_id': creditoId,
-          'numero_cuota':
-              (c['numero_cuota'] ?? c['numeroCuota'] ?? 0) as int,
-          'fecha_vencimiento':
-              c['fecha_pago']?.toString() ?? c['fechaPago']?.toString() ?? '',
-          'monto': (c['cuota'] as num?)?.toDouble() ?? 0,
-          'capital': (c['capital'] as num?)?.toDouble() ?? 0,
-          'interes': (c['interes'] as num?)?.toDouble() ?? 0,
-          'saldo': (c['saldo'] as num?)?.toDouble() ?? 0,
-          'estado': 'Pendiente',
-        });
+      // Recalculate schedule if monto_aprobado differs from original
+      final needsRecalc = (montoAprobado - montoOriginal).abs() > 0.01;
+      if (needsRecalc) {
+        scheduleRows = _generateSchedule(
+          userId: userId,
+          creditoId: creditoId,
+          monto: montoAprobado,
+          plazo: plazoSolicitado,
+          tea: tea,
+        );
+      } else {
+        for (final cuotaJson in cronogramaList) {
+          final c = cuotaJson as Map<String, dynamic>;
+          scheduleRows.add({
+            'cliente_id': userId,
+            'credito_id': creditoId,
+            'numero_cuota':
+                (c['numero_cuota'] ?? c['numeroCuota'] ?? 0) as int,
+            'fecha_vencimiento':
+                c['fecha_pago']?.toString() ?? c['fechaPago']?.toString() ?? '',
+            'monto': (c['cuota'] as num?)?.toDouble() ?? 0,
+            'estado': 'Pendiente',
+          });
+        }
       }
     }
 
@@ -235,7 +270,7 @@ class DisbursementRepository {
         creditoId: creditoId,
         monto: montoAprobado,
         plazo: plazoSolicitado,
-        tea: teaReferencial,
+        tea: tea,
       );
     }
 
@@ -244,7 +279,7 @@ class DisbursementRepository {
     }
     debugPrint('[DISBURSEMENT] schedule inserted rows=${scheduleRows.length}');
 
-    // 6. Get main account and credit it
+    // Get main account and credit it
     final accountRows = await client
         .from('clientes_cuentas')
         .select()
@@ -277,7 +312,7 @@ class DisbursementRepository {
         .eq('es_principal', true);
     debugPrint('[DISBURSEMENT] account credited amount=$montoAprobado');
 
-    // 7. Insert movement
+    // Insert movement
     await client.from('clientes_movimientos').insert({
       'cliente_id': userId,
       'fecha': now.toIso8601String(),
@@ -289,7 +324,7 @@ class DisbursementRepository {
     });
     debugPrint('[DISBURSEMENT] movement inserted');
 
-    // 8. Insert operation
+    // Insert operation
     final operationNumber =
         'ALF-DES-${now.millisecondsSinceEpoch}';
     await client.from('clientes_operaciones').insert({
@@ -333,9 +368,6 @@ class DisbursementRepository {
         'numero_cuota': i,
         'fecha_vencimiento': fecha.toIso8601String(),
         'monto': cuota,
-        'capital': capital,
-        'interes': interes,
-        'saldo': saldo,
         'estado': 'Pendiente',
       });
     }

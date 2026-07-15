@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../core/session/session_timeout_manager.dart';
-import '../data/demo_client_data.dart';
 import '../model/account_model.dart';
 import '../model/credit_model.dart';
 import '../model/movement_model.dart';
@@ -57,8 +56,7 @@ class HomeViewModel extends ChangeNotifier {
     debugPrint('[HOME] loading real data');
 
     if (!_auth.isConfigured || _auth.currentUser == null) {
-      debugPrint('[HOME] fallback demo reason=no_session');
-      _applyDemoFallback();
+      debugPrint('[HOME] no session');
       isLoading = false;
       notifyListeners();
       return;
@@ -67,7 +65,8 @@ class HomeViewModel extends ChangeNotifier {
     try {
       final profile = await _profileRepository.getCurrentProfile();
       final account = await _accountsRepository.getMainAccount();
-      final credit = await _creditsRepository.getActiveCredit();
+      final credits = await _creditsRepository.getCredits();
+      final credit = credits.isNotEmpty ? credits.first : null;
       final movements = await _accountsRepository.getMovements();
       final reqs = await _requestsRepository.getRequests();
 
@@ -97,21 +96,12 @@ class HomeViewModel extends ChangeNotifier {
       loadError = null;
       debugPrint('[HOME] loaded real data');
     } catch (e) {
-      debugPrint('[HOME] fallback demo reason=supabase_error');
-      _applyDemoFallback();
+      debugPrint('[HOME] error=$e');
       loadError = 'No se pudieron cargar los datos remotos.';
-      debugPrint('[HomeViewModel] $e');
     }
 
     isLoading = false;
     notifyListeners();
-  }
-
-  void _applyDemoFallback() {
-    clientName = DemoClientData.clientName;
-    savingsAccount = DemoClientData.savingsAccount;
-    activeCredit = DemoClientData.activeCredit;
-    recentMovements = DemoClientData.homeMovements;
   }
 
   int get evaluationCount =>

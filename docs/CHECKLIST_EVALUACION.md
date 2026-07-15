@@ -73,13 +73,20 @@
 | 66 | Actualización de proxima_fecha_pago | ✅ Cumple | `CreditPaymentRepository` | Consulta siguiente cuota pendiente y actualiza fecha |
 | 67 | Cancelación de crédito al pagar todas las cuotas | ✅ Cumple | `CreditPaymentRepository` | estado=CANCELADO, activo=false |
 | 68 | Reload de créditos al regresar de pago | ✅ Cumple | `CreditsViewModel.reload()` | Recarga completa post-pago |
+| 69 | Schema `solicitudes_credito` verificado con columnas C4.9 | ✅ Cumple | Columna verificadas | 34 columnas verificadas en Supabase para soporte completo |
+| 70 | Fallback silencioso eliminado en submitRequest | ✅ Cumple | `client_loan_request_repository.dart` | Un solo insert; error visible si falla |
+| 71 | Creación de cliente con nombres y teléfono | ✅ Cumple | `findOrCreateClientByDni()` | Guarda numero_documento, nombres, telefono, tipo_cliente, created_at |
+| 72 | Documentación FASE_C4_9_SOPORTE_30_CASOS_CREDITO | ✅ Cumple | `docs/FASE_C4_9_SOPORTE_30_CASOS_CREDITO.md` | Creada y actualizada |
+| 73 | Autocarga datos del usuario logueado en formulario | ✅ Cumple | `client_loan_request_screen.dart` | Al abrir solicitud, precarga nombre/DNI/teléfono desde clientes_perfil |
+| 74 | Campos editables para probar 30 casos | ✅ Cumple | `ClientLoanRequestScreen` | Los campos no están bloqueados; se pueden modificar manualmente |
+| 75 | Botón "Restaurar mis datos" | ✅ Cumple | `ClientLoanRequestScreen` | Vuelve a cargar datos originales del usuario logueado |
 
 ## Resumen de cumplimiento
 
 | Métrica | Valor |
 |---------|-------|
-| Requisitos evaluados | 68 |
-| Cumplidos | 68 |
+| Requisitos evaluados | 75 |
+| Cumplidos | 75 |
 | Pendientes (esta entrega) | 0 |
 
 ## Fuera de alcance (fase backend)

@@ -35,10 +35,10 @@ class _CreditsScreenState extends State<CreditsScreen> {
     super.dispose();
   }
 
-  Future<void> _payInstallment() async {
+  Future<void> _payInstallment(CreditModel credit) async {
     await Navigator.of(context).pushNamed(
       AppRoutes.creditPayment,
-      arguments: _viewModel.activeCredit,
+      arguments: credit,
     );
     unawaited(_viewModel.reload());
   }
@@ -68,13 +68,11 @@ class _CreditsScreenState extends State<CreditsScreen> {
             return _buildError(context);
           }
 
-          final credit = vm.activeCredit;
-
-          if (credit == null) {
+          if (vm.credits.isEmpty) {
             return _buildEmptyCredit(context);
           }
 
-          return _buildContent(context, vm, credit);
+          return _buildContent(context, vm);
         },
       ),
       bottomNavigationBar: const AppBottomNav(currentIndex: 2),
@@ -131,120 +129,29 @@ class _CreditsScreenState extends State<CreditsScreen> {
     );
   }
 
-  Widget _buildContent(
-      BuildContext context, CreditsViewModel vm, CreditModel credit) {
+  Widget _buildContent(BuildContext context, CreditsViewModel vm) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  credit.productName,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 16),
-                _MetricRow(
-                  label: 'Monto pendiente',
-                  value:
-                      'S/ ${FormatUtils.formatSoles(credit.pendingAmount)}',
-                  highlight: true,
-                ),
-                _MetricRow(
-                  label: 'Cuota mensual',
-                  value: vm.monthlyInstallment > 0
-                      ? 'S/ ${FormatUtils.formatSoles(vm.monthlyInstallment)}'
-                      : '—',
-                ),
-                _MetricRow(
-                  label: 'Próximo pago',
-                  value: FormatUtils.formatDate(credit.nextPaymentDate),
-                ),
-                _MetricRow(
-                  label: 'TEA referencial',
-                  value: vm.teaPercent > 0
-                      ? '${vm.teaPercent.toStringAsFixed(1)} %'
-                      : '—',
-                ),
-                const SizedBox(height: 16),
-                if (vm.paymentProgress > 0) ...[
-                  Text(
-                    'Progreso de pago',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LinearProgressIndicator(
-                      value: vm.paymentProgress,
-                      minHeight: 10,
-                      backgroundColor: AppColors.grayLight,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${(vm.paymentProgress * 100).toStringAsFixed(0)} % completado',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textDark.withValues(alpha: 0.6),
-                        ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (vm.schedule.any(
-            (s) => s.status == PaymentInstallmentStatus.pending)) ...[
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _payInstallment,
-              icon: const Icon(Icons.payments_outlined),
-              label: const Text('Pagar cuota'),
-            ),
-          ),
-        ] else ...[
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.green.shade50,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.green.shade200),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.check_circle_outline,
-                    size: 20, color: Colors.green.shade700),
-                const SizedBox(width: 8),
-                Text(
-                  vm.schedule.isEmpty
-                      ? 'Sin cuotas pendientes'
-                      : 'Crédito al día',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.green.shade700,
-                  ),
-                ),
-              ],
-            ),
+        for (var i = 0; i < vm.credits.length; i++) ...[
+          if (i > 0) const SizedBox(height: 20),
+          _CreditCard(
+            credit: vm.credits[i],
+            monthlyInstallment: vm.credits[i].monthlyInstallment ?? 0,
+            teaPercent: vm.credits[i].teaPercent ?? 0,
+            paymentProgress: _normalizeProgress(vm.credits[i].paymentProgress),
+            onPay: () => _payInstallment(vm.credits[i]),
           ),
         ],
-        const SizedBox(height: 28),
-        Text(
-          'Cronograma de pagos',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-        const SizedBox(height: 12),
-        if (vm.schedule.isNotEmpty)
+        if (vm.schedule.isNotEmpty) ...[
+          const SizedBox(height: 28),
+          Text(
+            'Cronograma de pagos',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 12),
           Card(
             child: Column(
               children: [
@@ -257,20 +164,105 @@ class _CreditsScreenState extends State<CreditsScreen> {
                 ],
               ],
             ),
-          )
-        else
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: Text(
-                'No hay cronograma disponible.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textDark.withValues(alpha: 0.5),
+          ),
+        ],
+      ],
+    );
+  }
+
+  double _normalizeProgress(double? raw) {
+    if (raw == null || raw <= 0) return 0;
+    return raw > 1 ? raw / 100 : raw;
+  }
+}
+
+class _CreditCard extends StatelessWidget {
+  const _CreditCard({
+    required this.credit,
+    required this.monthlyInstallment,
+    required this.teaPercent,
+    required this.paymentProgress,
+    required this.onPay,
+  });
+
+  final CreditModel credit;
+  final double monthlyInstallment;
+  final double teaPercent;
+  final double paymentProgress;
+  final VoidCallback onPay;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              credit.productName,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 16),
+            _MetricRow(
+              label: 'Monto pendiente',
+              value: 'S/ ${FormatUtils.formatSoles(credit.pendingAmount)}',
+              highlight: true,
+            ),
+            _MetricRow(
+              label: 'Cuota mensual',
+              value: monthlyInstallment > 0
+                  ? 'S/ ${FormatUtils.formatSoles(monthlyInstallment)}'
+                  : '—',
+            ),
+            _MetricRow(
+              label: 'Próximo pago',
+              value: FormatUtils.formatDate(credit.nextPaymentDate),
+            ),
+            _MetricRow(
+              label: 'TEA referencial',
+              value: teaPercent > 0
+                  ? '${teaPercent.toStringAsFixed(1)} %'
+                  : '—',
+            ),
+            if (paymentProgress > 0) ...[
+              const SizedBox(height: 16),
+              Text(
+                'Progreso de pago',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: paymentProgress,
+                  minHeight: 10,
+                  backgroundColor: AppColors.grayLight,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${(paymentProgress * 100).toStringAsFixed(0)} % completado',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textDark.withValues(alpha: 0.6),
                     ),
               ),
+            ],
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onPay,
+                icon: const Icon(Icons.payments_outlined),
+                label: const Text('Pagar cuota'),
+              ),
             ),
-          ),
-      ],
+          ],
+        ),
+      ),
     );
   }
 }

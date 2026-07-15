@@ -78,13 +78,32 @@ class RequestsRepository {
     debugPrint('[REQUESTS] cliente corporativo id=$clienteId');
 
     try {
-      final rows = await client
-          .from('solicitudes_credito')
-          .select()
-          .eq('cliente_id', clienteId)
-          .order('created_at', ascending: false);
+      // Query by cliente_id OR created_by_auth_id (for demo-created requests)
+      List<Map<String, dynamic>> list;
 
-      final list = List<Map<String, dynamic>>.from(rows as List);
+      try {
+        final rows = await client
+            .from('solicitudes_credito')
+            .select()
+            .or(
+              'cliente_id.eq.$clienteId,'
+              'created_by_auth_id.eq.${currentUser.id}',
+            )
+            .order('created_at', ascending: false);
+
+        list = List<Map<String, dynamic>>.from(rows as List);
+      } catch (_) {
+        // Fallback if created_by_auth_id column doesn't exist
+        debugPrint('[REQUESTS] OR query failed, using fallback');
+        final rows = await client
+            .from('solicitudes_credito')
+            .select()
+            .eq('cliente_id', clienteId)
+            .order('created_at', ascending: false);
+
+        list = List<Map<String, dynamic>>.from(rows as List);
+      }
+
       debugPrint('[REQUESTS] solicitudes encontradas=${list.length}');
 
       return list.map((r) => RequestModel.fromSupabase(r)).toList();

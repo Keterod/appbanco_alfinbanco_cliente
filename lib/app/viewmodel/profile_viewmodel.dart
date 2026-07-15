@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../core/session/session_timeout_manager.dart';
-import '../data/demo_client_data.dart';
 import '../model/user_profile_model.dart';
 import '../repository/auth_repository.dart';
 import '../repository/profile_repository.dart';
@@ -36,8 +35,7 @@ class ProfileViewModel extends ChangeNotifier {
     debugPrint('[PROFILE] loading real profile');
 
     if (!_auth.isConfigured || _auth.currentUser == null) {
-      debugPrint('[PROFILE] fallback demo reason=no_session');
-      profile = DemoClientData.profile;
+      debugPrint('[PROFILE] no session');
       isLoading = false;
       notifyListeners();
       return;
@@ -56,10 +54,8 @@ class ProfileViewModel extends ChangeNotifier {
 
       loadError = null;
     } catch (e) {
-      debugPrint('[PROFILE] fallback demo reason=supabase_error');
-      profile = DemoClientData.profile;
+      debugPrint('[PROFILE] error=$e');
       loadError = 'No se pudo cargar tu perfil.';
-      debugPrint('[ProfileViewModel] $e');
     }
 
     isLoading = false;

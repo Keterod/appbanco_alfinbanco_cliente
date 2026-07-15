@@ -96,17 +96,57 @@ class AccountsRepository {
   Future<List<AccountModel>> getAccounts() async {
     if (!_auth.isConfigured || _userId == null) return [];
 
-    debugPrint('[ACCOUNTS] loading user accounts');
+    final userId = _userId!;
     final client = _client ?? supabase;
-    final rows = await client
+
+    debugPrint('DEBUG CLIENTES CUENTAS: userId=$userId');
+
+    var rows = await client
         .from('clientes_cuentas')
         .select()
-        .eq('cliente_id', _userId!)
+        .eq('cliente_id', userId)
         .order('es_principal', ascending: false)
         .order('numero_cuenta', ascending: true);
 
-    final list = List<Map<String, dynamic>>.from(rows as List);
-    debugPrint('[ACCOUNTS] accounts found=${list.length}');
+    var list = List<Map<String, dynamic>>.from(rows as List);
+
+    debugPrint('DEBUG CLIENTES CUENTAS: count=${list.length}');
+    debugPrint(
+        'DEBUG CLIENTES CUENTAS: first=${list.isNotEmpty ? list.first : null}');
+
+    if (list.isEmpty) {
+      debugPrint('[ACCOUNTS] no accounts found, creating default account');
+      final now = DateTime.now();
+      final numeroCuenta =
+          '0011-${now.millisecondsSinceEpoch.toString().padLeft(12, '0').substring(0, 12)}';
+      final cci =
+          '002-011${now.millisecondsSinceEpoch.toString().padLeft(12, '0').substring(0, 12)}-56';
+
+      await client.from('clientes_cuentas').insert({
+        'cliente_id': userId,
+        'numero_cuenta': numeroCuenta,
+        'cci': cci,
+        'tipo_cuenta': 'Cuenta de Ahorros',
+        'saldo': 0,
+        'saldo_disponible': 0,
+        'saldo_contable': 0,
+        'moneda': 'PEN',
+        'activa': true,
+        'es_principal': true,
+        'created_at': now.toIso8601String(),
+      });
+
+      rows = await client
+          .from('clientes_cuentas')
+          .select()
+          .eq('cliente_id', userId)
+          .order('es_principal', ascending: false)
+          .order('numero_cuenta', ascending: true);
+
+      list = List<Map<String, dynamic>>.from(rows as List);
+      debugPrint('[ACCOUNTS] created default account, count=${list.length}');
+    }
+
     return list
         .map((r) => AccountModel.fromSupabase(r))
         .toList();

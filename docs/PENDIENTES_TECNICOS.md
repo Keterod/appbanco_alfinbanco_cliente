@@ -86,7 +86,16 @@
 - [x] Cancelación automática cuando todas las cuotas están pagadas
 - [x] Monto pendiente reducido por `installment.amount` (columna `capital` no existe)
 
-## Pendientes para fases posteriores (C4.9, C5)
+## Implementados en Fase C4.9
+- [x] Schema real de `solicitudes_credito` verificado con todas las columnas C4.9
+- [x] Fallback silencioso de 3 niveles eliminado en `submitRequest()`
+- [x] Un solo insert completo con todos los campos; error visible si falla
+- [x] `findOrCreateClientByDni()` mejorado: ahora guarda nombres y teléfono en `clientes`
+- [x] Documentación FASE_C4_9_SOPORTE_30_CASOS_CREDITO.md creada
+- [x] Modelo de datos documentado: `clientes.id` = solicitante, `created_by_auth_id` = usuario logueado
+- [x] Autocarga datos del usuario logueado al abrir formulario de solicitud
+- [x] Campos editables para probar 30 casos (no bloqueados)
+- [x] Botón "Restaurar mis datos" para recargar datos originales
 - [ ] Pago de servicio Luz
 - [ ] Metas de ahorro
 - [ ] Depósito a cuenta propia

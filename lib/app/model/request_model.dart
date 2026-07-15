@@ -54,6 +54,17 @@ class RequestModel {
     this.asesorAsignado,
     this.prioridad,
     this.updatedAt,
+    this.createdByAuthId,
+    this.solicitanteDocumento,
+    this.solicitanteNombre,
+    this.solicitanteTelefono,
+    this.estadoBuro,
+    this.entidadesDeuda,
+    this.deudaTotal,
+    this.diasMayorMora,
+    this.enListaInhabilitados,
+    this.motivoPreEvaluacion,
+    this.productName,
   });
 
   final String id;
@@ -77,6 +88,17 @@ class RequestModel {
   final String? asesorAsignado;
   final String? prioridad;
   final DateTime? updatedAt;
+  final String? createdByAuthId;
+  final String? solicitanteDocumento;
+  final String? solicitanteNombre;
+  final String? solicitanteTelefono;
+  final String? estadoBuro;
+  final int? entidadesDeuda;
+  final double? deudaTotal;
+  final int? diasMayorMora;
+  final bool? enListaInhabilitados;
+  final String? motivoPreEvaluacion;
+  final String? productName;
 
   factory RequestModel.fromSupabase(Map<String, dynamic> json) {
     final cronogramaRaw = json['cronograma_json'] ?? json['cronogramaJson'];
@@ -157,6 +179,39 @@ class RequestModel {
       updatedAt: parseSupabaseDate(
         json['updated_at'] ?? json['updatedAt'],
       ),
+      createdByAuthId: json.containsKey('created_by_auth_id')
+          ? parseSupabaseString(json['created_by_auth_id'])
+          : null,
+      solicitanteDocumento: json.containsKey('solicitante_documento')
+          ? parseSupabaseString(json['solicitante_documento'])
+          : null,
+      solicitanteNombre: json.containsKey('solicitante_nombre')
+          ? parseSupabaseString(json['solicitante_nombre'])
+          : null,
+      solicitanteTelefono: json.containsKey('solicitante_telefono')
+          ? parseSupabaseString(json['solicitante_telefono'])
+          : null,
+      estadoBuro: json.containsKey('estado_buro')
+          ? parseSupabaseString(json['estado_buro'])
+          : null,
+      entidadesDeuda: json.containsKey('entidades_deuda')
+          ? (json['entidades_deuda'] as num?)?.toInt()
+          : null,
+      deudaTotal: json.containsKey('deuda_total')
+          ? parseSupabaseDouble(json['deuda_total'])
+          : null,
+      diasMayorMora: json.containsKey('dias_mayor_mora')
+          ? (json['dias_mayor_mora'] as num?)?.toInt()
+          : null,
+      enListaInhabilitados: json.containsKey('en_lista_inhabilitados')
+          ? json['en_lista_inhabilitados'] == true
+          : null,
+      motivoPreEvaluacion: json.containsKey('motivo_pre_evaluacion')
+          ? parseSupabaseString(json['motivo_pre_evaluacion'])
+          : null,
+      productName: json.containsKey('nombre_producto')
+          ? parseSupabaseString(json['nombre_producto'])
+          : null,
     );
   }
 

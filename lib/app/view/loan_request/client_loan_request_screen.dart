@@ -20,27 +20,49 @@ class ClientLoanRequestScreen extends StatefulWidget {
 
 class _ClientLoanRequestScreenState extends State<ClientLoanRequestScreen> {
   late final ClientLoanRequestViewModel _vm;
+  final _solicitanteNombreController = TextEditingController();
+  final _solicitanteDocController = TextEditingController();
+  final _solicitanteTelController = TextEditingController();
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _incomeController = TextEditingController();
   final _expenseController = TextEditingController();
   final _amountController = TextEditingController();
+  final _deudaTotalController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _vm = ClientLoanRequestViewModel();
+    unawaited(_initLoad());
     unawaited(SessionTimeoutManager.saveActivity());
+  }
+
+  Future<void> _initLoad() async {
+    await _vm.loadCurrentLoggedApplicant();
+    if (mounted) {
+      _updateSolicitanteControllers();
+    }
+  }
+
+  void _updateSolicitanteControllers() {
+    _solicitanteNombreController.text = _vm.model.solicitanteNombres;
+    _solicitanteDocController.text = _vm.model.solicitanteDocumento;
+    _solicitanteTelController.text = _vm.model.solicitanteTelefono;
   }
 
   @override
   void dispose() {
     _vm.dispose();
+    _solicitanteNombreController.dispose();
+    _solicitanteDocController.dispose();
+    _solicitanteTelController.dispose();
     _nameController.dispose();
     _ageController.dispose();
     _incomeController.dispose();
     _expenseController.dispose();
     _amountController.dispose();
+    _deudaTotalController.dispose();
     super.dispose();
   }
 
@@ -67,7 +89,7 @@ class _ClientLoanRequestScreenState extends State<ClientLoanRequestScreen> {
   }
 
   Widget _buildForm(BuildContext context) {
-    final steps = ['Negocio', 'Crédito', 'Confirmar'];
+    final steps = ['Solicitante', 'Negocio', 'Crédito', 'Confirmar'];
     return Column(
       children: [
         Padding(
@@ -114,6 +136,7 @@ class _ClientLoanRequestScreenState extends State<ClientLoanRequestScreen> {
           child: IndexedStack(
             index: _vm.stepIndex,
             children: [
+              _buildStepSolicitante(context),
               _buildStepNegocio(context),
               _buildStepCredito(context),
               _buildStepConfirmar(context),
@@ -121,6 +144,153 @@ class _ClientLoanRequestScreenState extends State<ClientLoanRequestScreen> {
           ),
         ),
         _buildBottomBar(context),
+      ],
+    );
+  }
+
+  Widget _buildStepSolicitante(BuildContext context) {
+    final m = _vm.model;
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        Text('Datos del solicitante',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _solicitanteNombreController,
+          onChanged: (v) => m.solicitanteNombres = v,
+          decoration: const InputDecoration(
+            labelText: 'Nombres y apellidos',
+            prefixIcon: Icon(Icons.person_outlined),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _solicitanteDocController,
+          onChanged: (v) => m.solicitanteDocumento = v,
+          keyboardType: TextInputType.number,
+          maxLength: 8,
+          decoration: const InputDecoration(
+            labelText: 'DNI / documento',
+            prefixIcon: Icon(Icons.assignment_ind_outlined),
+            counterText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _solicitanteTelController,
+          onChanged: (v) => m.solicitanteTelefono = v,
+          keyboardType: TextInputType.phone,
+          maxLength: 9,
+          decoration: const InputDecoration(
+            labelText: 'Teléfono',
+            prefixIcon: Icon(Icons.phone_outlined),
+            counterText: '',
+          ),
+        ),
+        if (_vm.applicantLoadMessage != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, size: 16, color: Colors.blue.shade700),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _vm.applicantLoadMessage!,
+                    style: TextStyle(fontSize: 12, color: Colors.blue.shade800),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_vm.hasOriginalData) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () {
+                  _vm.restoreApplicantData();
+                  _updateSolicitanteControllers();
+                },
+                icon: const Icon(Icons.restore_outlined, size: 16),
+                label: const Text('Restaurar mis datos'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.secondary,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
+            ),
+          ],
+        ],
+        const SizedBox(height: 24),
+        Text('Buró de crédito',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<String>(
+          initialValue: m.estadoBuro,
+          items: ClientLoanRequestModel.bureauStates
+              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+              .toList(),
+          onChanged: (v) {
+            m.estadoBuro = v ?? 'NORMAL';
+            m.notifyAll();
+          },
+          decoration: const InputDecoration(
+            labelText: 'Estado buró',
+            prefixIcon: Icon(Icons.credit_score_outlined),
+          ),
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<bool>(
+          initialValue: m.enListaInhabilitados,
+          items: const [
+            DropdownMenuItem(value: false, child: Text('No')),
+            DropdownMenuItem(value: true, child: Text('Sí')),
+          ],
+          onChanged: (v) {
+            m.enListaInhabilitados = v ?? false;
+            m.notifyAll();
+          },
+          decoration: const InputDecoration(
+            labelText: '¿En lista de inhabilitados?',
+            prefixIcon: Icon(Icons.gavel_outlined),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _deudaTotalController,
+          onChanged: (v) => m.deudaTotalText = v,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Deuda total (S/)',
+            prefixIcon: Icon(Icons.money_off_outlined),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          onChanged: (v) => m.entidadesDeudaText = v,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Entidades con deuda',
+            prefixIcon: Icon(Icons.business_outlined),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          onChanged: (v) => m.diasMayorMoraText = v,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Días de mayor mora',
+            prefixIcon: Icon(Icons.calendar_today_outlined),
+          ),
+        ),
       ],
     );
   }
@@ -250,6 +420,20 @@ class _ClientLoanRequestScreenState extends State<ClientLoanRequestScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text('Datos del solicitante', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
+                const SizedBox(height: 8),
+                _row('Nombre', m.solicitanteNombres),
+                _row('DNI', m.solicitanteDocumento),
+                _row('Teléfono', m.solicitanteTelefono),
+                const Divider(height: 24),
+                Text('Buró de crédito', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
+                const SizedBox(height: 8),
+                _row('Estado buró', m.estadoBuro),
+                _row('Entidades deuda', '${m.entidadesDeuda}'),
+                _row('Deuda total', 'S/ ${FormatUtils.formatSoles(m.deudaTotal)}'),
+                _row('Días mora', '${m.diasMayorMora}'),
+                _row('Inhabilitado', m.enListaInhabilitados ? 'Sí' : 'No'),
+                const Divider(height: 24),
                 Text('Datos del negocio', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
                 const SizedBox(height: 8),
                 _row('Tipo', m.businessType),
@@ -281,19 +465,39 @@ class _ClientLoanRequestScreenState extends State<ClientLoanRequestScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: _eligibilityColor(m.eligibility).withValues(alpha: 0.3)),
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(_eligibilityIcon(m.eligibility), color: _eligibilityColor(m.eligibility)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(m.eligibility, style: TextStyle(fontWeight: FontWeight.w700, color: _eligibilityColor(m.eligibility))),
-                            Text('Score: ${m.score} · Riesgo: ${m.risk}', style: TextStyle(fontSize: 12, color: AppColors.textDark.withValues(alpha: 0.6))),
-                          ],
-                        ),
+                      Row(
+                        children: [
+                          Icon(_eligibilityIcon(m.eligibility), color: _eligibilityColor(m.eligibility)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(m.eligibility, style: TextStyle(fontWeight: FontWeight.w700, color: _eligibilityColor(m.eligibility))),
+                                Text('Score: ${m.score} · Riesgo: ${m.risk}', style: TextStyle(fontSize: 12, color: AppColors.textDark.withValues(alpha: 0.6))),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
+                      if (m.motivoPreEvaluacion.isNotEmpty)
+                        const SizedBox(height: 8),
+                      if (m.motivoPreEvaluacion.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Motivo: ${m.motivoPreEvaluacion}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -330,7 +534,7 @@ class _ClientLoanRequestScreenState extends State<ClientLoanRequestScreen> {
               ),
             if (_vm.stepIndex > 0) const SizedBox(width: 12),
             Expanded(
-              child: _vm.stepIndex < 2
+              child: _vm.stepIndex < 3
                   ? ElevatedButton(
                       onPressed: _vm.advance,
                       child: const Text('Siguiente'),
